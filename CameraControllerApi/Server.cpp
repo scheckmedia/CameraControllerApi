@@ -114,7 +114,7 @@ int Server::url_handler (void *cls,
     
     
     *ptr = 0;
-    val = MHD_lookup_connection_value(connection, MHD_GET_ARGUMENT_KIND, "q");
+    //val = MHD_lookup_connection_value(connection, MHD_GET_ARGUMENT_KIND, "q");
     me = (char *)malloc(respdata.size() + 1);
     if(me == 0)
         return MHD_NO;
