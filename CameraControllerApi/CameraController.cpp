@@ -38,12 +38,12 @@ bool CameraController::camera_found(){
     return this->_camera_found;
 }
 
-static GPContextErrorFunc _error_callback(GPContext *context, const char *text, void *data){
+GPContextErrorFunc CameraController::_error_callback(GPContext *context, const char *text, void *data){
     
     return 0;
 }
 
-static GPContextMessageFunc _message_callback(GPContext *context, const char *text, void *data){
+GPContextMessageFunc CameraController::_message_callback(GPContext *context, const char *text, void *data){
     
     return 0;
 }
