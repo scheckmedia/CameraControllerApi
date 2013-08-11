@@ -38,6 +38,26 @@ bool CameraController::camera_found(){
     return this->_camera_found;
 }
 
+int CameraController::get_settings_value(const char *key, const char &val){
+    CameraWidget *w, *child;
+    CameraWidgetType type;
+    int ret;
+    
+    ret = gp_camera_get_config(this->_camera, &w, this->_ctx);
+    if(ret < GP_OK){
+        
+    }
+    
+}
+
+int CameraController::set_settings_value(const char *key, const char &val){
+    
+}
+
+int CameraController::_validate_widget(CameraWidget *w, const char *key, CameraWidget *child){
+    
+}
+
 GPContextErrorFunc CameraController::_error_callback(GPContext *context, const char *text, void *data){
     
     return 0;

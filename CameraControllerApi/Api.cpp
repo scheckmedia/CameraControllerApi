@@ -9,10 +9,16 @@
 #include "Api.h"
 
 
+
 using namespace CameraControllerApi;
 
-Api::Api(){
+Api::Api(CameraController *cc){
+    this->_cc = cc;
+}
 
+bool Api::list_settings(string &output){
+   
+    return true;
 }
 
 void Api::buildResponse(void *data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE resp, string &output){

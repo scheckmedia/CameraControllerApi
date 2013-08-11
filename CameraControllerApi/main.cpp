@@ -8,6 +8,8 @@
 
 #include <iostream>
 #include "Server.h"
+#include "CameraController.h"
+#include "Api.h"
 
 using namespace CameraControllerApi;
 

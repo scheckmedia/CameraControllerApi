@@ -9,6 +9,7 @@
 #ifndef __CameraControllerApi__Api__
 #define __CameraControllerApi__Api__
 
+#include "CameraController.h"
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -38,9 +39,13 @@ namespace CameraControllerApi {
     } CCA_API_OUTPUT_TYPE;
     
     class Api {
+    private:
+        CameraController *_cc;
         
     public:
-        Api();
+        Api(CameraController *cc);
+        bool list_settings(string &output);
+        
         static void buildResponse(void *data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE resp, string &output);
         static void errorMessage(CCA_API_RESPONSE errnr, string &message);
     };

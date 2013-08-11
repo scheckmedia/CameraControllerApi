@@ -11,11 +11,17 @@
 
 #include <iostream>
 #include "microhttpd.h"
+#include "Api.h"
+#include "CameraController.h"
+#include "Command.h"
 
 namespace CameraControllerApi {
     class Server{
     public:
         Server(int port);
+        Api *api;
+        CameraController *cc;
+        Command *cmd;
         
         static void* initial(void*);
         

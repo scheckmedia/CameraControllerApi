@@ -9,6 +9,7 @@
 #ifndef __CameraControllerApi__Command__
 #define __CameraControllerApi__Command__
 
+#include "Api.h"
 #include <iostream>
 #include <map>
 #include <string>
@@ -26,9 +27,10 @@ using std::vector;
 namespace CameraControllerApi {
     class Command {
     public:
-        Command();
+        Command(Api *api);
         int execute(const string& url, const map<string, string>& argvals, string& response);
     private:
+        Api *_api;
         map<string, set<string> > _valid_commands;
         bool _executeAPI(const string &url, const set<string> &argvals, const char *type, string &response);
         bool _validate(const void *data);

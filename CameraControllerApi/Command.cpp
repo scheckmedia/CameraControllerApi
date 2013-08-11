@@ -19,9 +19,10 @@ struct validate_data {
     set<string>* params;
 };
 
-Command::Command(){
+Command::Command(Api *api){
+    this->_api = api;
     set<string> params;
-    string param_camera_settings[] = {"aperture", "speed", "iso", "white_balance","focus_point","focus_mode"};
+    string param_camera_settings[] = {"list", "aperture", "speed", "iso", "white_balance","focus_point","focus_mode"};
     string param_execute[] = {"shot","time_lapse","continuous_shooting"};
     _valid_commands["/settings"] = set<string>(param_camera_settings, param_camera_settings + 6);
     _valid_commands["/capture"] = set<string>(param_execute, param_execute + 3);
@@ -65,8 +66,16 @@ int Command::execute(const string &url, const map<string, string> &argvals, stri
     return this->_executeAPI(url, uniqueparams, "xml", response);
 }
 
-bool Command::_executeAPI(const string &url, const set<string> &argvals, const char *type, string &response){
+bool Command::_executeAPI(const string &url, const set<string> &params, const char *type, string &response){
     bool ret = CCA_CMD_SUCCESS;
+    
+    if(url == "/settings"){
+        if(params.find("list") != params.end()){
+            ret = this->_api->list_settings(response);
+        }
+
+        
+    }
     return ret;
 }
 

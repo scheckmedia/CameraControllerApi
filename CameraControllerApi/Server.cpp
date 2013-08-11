@@ -33,6 +33,9 @@ Server::Server(int port){
 
 void *Server::initial(void *context){
     Server *s = (Server *)context;
+    CameraController *cc = new CameraController();
+    s->api = new Api(cc);
+    s->cmd = new Command(s->api);
     s->http();
     
     return 0;
@@ -93,7 +96,6 @@ int Server::url_handler (void *cls,
     const char *typejson = "json";
     const char *type = typejson;
     
-    CameraControllerApi::Command cmd;
     
     struct MHD_Response *response;
     
@@ -110,8 +112,8 @@ int Server::url_handler (void *cls,
         return Server::send_bad_response(connection);
     }
     
-    cmd.execute(url, url_args, respdata);
-    
+    Server s = *(Server *)cls;  
+    s.cmd->execute(url, url_args, respdata);
     
     *ptr = 0;
     //val = MHD_lookup_connection_value(connection, MHD_GET_ARGUMENT_KIND, "q");
@@ -144,11 +146,9 @@ int Server::url_handler (void *cls,
 }
 
 void *Server::http(){
-    printf("Port %d", this->_port);
-    printf("Huhu");
     struct MHD_Daemon *d;
     d = MHD_start_daemon(MHD_USE_DEBUG|MHD_USE_SELECT_INTERNALLY|MHD_USE_POLL, this->_port,
-                         0, 0, this->url_handler, (void*)PAGE ,MHD_OPTION_END);
+                         0, 0, Server::url_handler, (void*)this ,MHD_OPTION_END);
     if(d==0){
         return 0;
     }
