@@ -29,8 +29,9 @@ namespace CameraControllerApi {
     using boost::property_tree::basic_ptree;
     
     typedef enum {
-        invalid = -1,
-        success = 1
+        CCA_API_RESPONSE_CAMERA_NOT_FOUND = -2,
+        CCA_API_RESPONSE_INVALID = -1,
+        CCA_API_RESPONSE_SUCCESS = 1
     } CCA_API_RESPONSE;
     
     typedef enum {
@@ -41,12 +42,12 @@ namespace CameraControllerApi {
     class Api {
     private:
         CameraController *_cc;
-        
+        bool _buildCameraNot(CCA_API_RESPONSE resp, CCA_API_OUTPUT_TYPE type, string &output);
     public:
         Api(CameraController *cc);
-        bool list_settings(string &output);
-        
-        static void buildResponse(void *data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE resp, string &output);
+        bool list_settings(CCA_API_OUTPUT_TYPE type, string &output);
+        bool set_focus_point(string focus_point, CCA_API_OUTPUT_TYPE type, string &output);
+        static void buildResponse(ptree data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE resp, string &output);
         static void errorMessage(CCA_API_RESPONSE errnr, string &message);
     };
 }
