@@ -8,8 +8,10 @@
 
 #include "Command.h"
 #include "Api.h"
+#include <algorithm>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 
 using namespace CameraControllerApi;
@@ -57,21 +59,32 @@ int Command::execute(const string &url, const map<string, string> &argvals, stri
     vdata.params = &uniqueparams;
         
     if ( !this->_validate(&vdata) || uniqueparams.size() < 1) {
-        resp = CCA_API_RESPONSE::invalid;
-        Api::buildResponse(nullptr, type, resp, response);
+        resp = CCA_API_RESPONSE_INVALID;
+        ptree p;
+        Api::buildResponse(p, type, resp, response);
         return resp;
     }
     
     
-    return this->_executeAPI(url, uniqueparams, "xml", response);
+    return this->_executeAPI(url, uniqueparams, argvals, type, response);
 }
 
-bool Command::_executeAPI(const string &url, const set<string> &params, const char *type, string &response){
+bool Command::_executeAPI(const string &url, const set<string> &actions, const map<string, string> &urlparams, CCA_API_OUTPUT_TYPE type, string &response){
     bool ret = CCA_CMD_SUCCESS;
     
     if(url == "/settings"){
-        if(params.find("list") != params.end()){
-            ret = this->_api->list_settings(response);
+        if(actions.find("list") != actions.end()){
+            ret = this->_api->list_settings(type, response);
+        } else if(actions.find("focus_point") != actions.end()){
+            
+            map<string,string>::const_iterator iterator = urlparams.find("point");
+            if(iterator == urlparams.end()){
+                return false;
+            }
+            
+            string param = iterator->second;
+            boost::trim(param);
+            ret = this->_api->set_focus_point(param, type, response);
         }
 
         

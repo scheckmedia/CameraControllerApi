@@ -32,7 +32,7 @@ namespace CameraControllerApi {
     private:
         Api *_api;
         map<string, set<string> > _valid_commands;
-        bool _executeAPI(const string &url, const set<string> &argvals, const char *type, string &response);
+        bool _executeAPI(const string &url, const set<string> &actions, const map<string, string> &urlparams, CCA_API_OUTPUT_TYPE type, string &response);
         bool _validate(const void *data);
         void _getInvalidResponse(string &response);
     };
