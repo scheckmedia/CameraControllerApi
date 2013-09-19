@@ -21,8 +21,6 @@ void sighandler(int sig){
 
 int main(int argc, const char * argv[])
 {
-    std::cout << "test";
-    printf("Nu");
     if(argc != 2){
         printf("%s PORT\n", argv[0]);
         exit(1);

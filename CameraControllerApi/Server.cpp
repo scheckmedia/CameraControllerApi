@@ -34,10 +34,11 @@ Server::Server(int port){
 void *Server::initial(void *context){
     Server *s = (Server *)context;
     CameraController *cc = new CameraController();
-    s->api = new Api(cc);
-    s->cmd = new Command(s->api);
-    s->http();
-    
+    if(cc->is_initialized()){
+        s->api = new Api(cc);
+        s->cmd = new Command(s->api);
+        s->http();
+    }
     return 0;
 }
 
@@ -91,7 +92,6 @@ int Server::url_handler (void *cls,
     
     static int aptr;
     char *me;
-    const char *val;
     const char *typexml = "xml";
     const char *typejson = "json";
     const char *type = typejson;
@@ -116,7 +116,6 @@ int Server::url_handler (void *cls,
     s.cmd->execute(url, url_args, respdata);
     
     *ptr = 0;
-    //val = MHD_lookup_connection_value(connection, MHD_GET_ARGUMENT_KIND, "q");
     me = (char *)malloc(respdata.size() + 1);
     if(me == 0)
         return MHD_NO;

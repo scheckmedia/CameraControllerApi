@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CCA_SETTINGS>
+    <server>
+        <auth>true</auth>
+        <username>example</username>
+        <password>example</password>
+        <port>8888</port>
+    </server>
+<CCA_SETTINGS>

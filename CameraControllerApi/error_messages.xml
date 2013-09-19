@@ -3,6 +3,6 @@
     <errors>
         <error id="0">No error message found</error>
         <error id="-1">Invalid Command</error>
-        <error id="-2">Something Bad</error>
+        <error id="-2">Camera not found</error>
     </errors>
 </CCA>
