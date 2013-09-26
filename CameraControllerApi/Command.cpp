@@ -25,7 +25,7 @@ Command::Command(Api *api){
     this->_api = api;
     set<string> params;
     string param_camera_settings[] = {"list", "aperture", "speed", "iso", "white_balance","focus_point","focus_mode"};
-    string param_execute[] = {"shot","time_lapse","continuous_shooting"};
+    string param_execute[] = {"shot","time_lapse","burst"};
     _valid_commands["/settings"] = set<string>(param_camera_settings, param_camera_settings + 6);
     _valid_commands["/capture"] = set<string>(param_execute, param_execute + 3);
 }
@@ -63,8 +63,7 @@ int Command::execute(const string &url, const map<string, string> &argvals, stri
         ptree p;
         Api::buildResponse(p, type, resp, response);
         return resp;
-    }
-    
+    }    
     
     return this->_executeAPI(url, uniqueparams, argvals, type, response);
 }
@@ -86,8 +85,19 @@ bool Command::_executeAPI(const string &url, const set<string> &actions, const m
             boost::trim(param);
             ret = this->_api->set_focus_point(param, type, response);
         }
-
-        
+    } else if(url == "/capture"){
+        if(actions.find("shot") != actions.end()){
+            ret = this->_api->shot(type, response);
+        } else if(actions.find("burst") != actions.end()){
+            map<string,string>::const_iterator iterator = urlparams.find("photos");
+            if(iterator == urlparams.end()){
+                return false;
+            }
+            
+            string param = iterator->second;
+            boost::trim(param);
+            ret = this->_api->burst(atoi(param.c_str()), type, response);
+        }
     }
     return ret;
 }
