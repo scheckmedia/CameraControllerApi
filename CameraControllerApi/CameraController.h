@@ -36,9 +36,9 @@ namespace CameraControllerApi {
         bool is_initialized();
         CameraController();
         ~CameraController();
-        int capture(const char *filename);
+        int capture(const char *filename, string &data);
         int get_settings(ptree &sett);
-        int get_settings_value(const char *key, const char *val);
+        int get_settings_value(const char *key, void *val);
         int set_settings_value(const char *key, const char *val);
                 
     private:
@@ -46,6 +46,8 @@ namespace CameraControllerApi {
         GPContext *_ctx;
         bool _camera_found;
         bool _is_initialized;
+        
+        bool _toBase64(char* dest, const char* src, uint size);
         
         void _build_settings_tree(CameraWidget *w);
         void _read_widget(CameraWidget *w, ptree &tree, string node);
