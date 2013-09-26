@@ -47,6 +47,8 @@ namespace CameraControllerApi {
         Api(CameraController *cc);
         bool list_settings(CCA_API_OUTPUT_TYPE type, string &output);
         bool set_focus_point(string focus_point, CCA_API_OUTPUT_TYPE type, string &output);
+        bool shot(CCA_API_OUTPUT_TYPE type, string &output);
+        bool burst(int number_of_images, CCA_API_OUTPUT_TYPE type, string &output);
         static void buildResponse(ptree data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE resp, string &output);
         static void errorMessage(CCA_API_RESPONSE errnr, string &message);
     };

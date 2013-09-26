@@ -27,7 +27,51 @@ bool Api::list_settings(CCA_API_OUTPUT_TYPE type, string &output){
 }
 
 bool Api::set_focus_point(string focus_point, CCA_API_OUTPUT_TYPE type, string &output){
+    ptree tree;
     int ret = this->_cc->set_settings_value("d108", focus_point.c_str());
+    if(ret)
+        Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
+    else
+        Api::buildResponse(tree, type, CCA_API_RESPONSE_INVALID, output);
+    
+    return true;
+}
+
+bool Api::shot(CCA_API_OUTPUT_TYPE type, string &output){
+    ptree tree;
+    string image;
+    int ret = this->_cc->capture("image.jpg", image);
+    if(ret){
+        tree.put("image", image);
+        Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
+        
+    } else {
+        Api::buildResponse(tree, type, CCA_API_RESPONSE_INVALID, output);
+    }
+    
+    return true;
+}
+
+bool Api::burst(int number_of_images, CCA_API_OUTPUT_TYPE type, string &output){
+    ptree tree, images;
+    char filename[256];
+    
+    for(int i = 0; i <= number_of_images; i++){
+        string base64image;
+        snprintf(filename, 256, "shot-%04d.jpg", i);
+        int ret = this->_cc->capture(filename, base64image);
+        if(ret){
+            ptree image;
+            image.put_value(base64image);
+            images.push_back(std::make_pair("", image));
+        } else {
+            return false;
+        }
+    }
+    tree.put_child("images", images);
+    Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
+    
+    
     return true;
 }
 
@@ -49,7 +93,8 @@ void Api::buildResponse(ptree data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE r
         } else {                        
             root.put("cca_response.state", "success");
             string message;
-            root.add_child("cca_response.data", data);
+            if(data.empty() == false)
+                root.add_child("cca_response.data", data);
         }
         
         if(type == CCA_OUTPUT_TYPE_JSON){
