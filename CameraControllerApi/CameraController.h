@@ -17,6 +17,7 @@
 #include <boost/property_tree/ptree.hpp>
 
 
+
 using std::string;
 using boost::property_tree::ptree;
 
@@ -27,31 +28,48 @@ namespace CameraControllerApi {
         CameraNotFound(const string m):msg(m){}
         const char* what(){return msg.c_str();}
     private:
-        string msg;
+        string msg;            
     };
     
-    class CameraController {     
+    class CameraController {    
+        
+    static void* start_liveview_server(void *context);
+        
     public:
         bool camera_found();
         bool is_initialized();
-        CameraController();
-        ~CameraController();
+        
+        static CameraController* getInstance();
+        static void release();
+        
         int capture(const char *filename, string &data);
+        int preview(const char **file_data);
+        int liveview_start();
+        int liveview_stop();
+        int trigger();
         int get_settings(ptree &sett);
         int get_settings_value(const char *key, void *val);
         int set_settings_value(const char *key, const char *val);
                 
     private:
+        static CameraController *_instance;        
         Camera *_camera;
         GPContext *_ctx;
+        bool _live_view_running;
         bool _camera_found;
         bool _is_initialized;
         
+        CameraController();
+        ~CameraController();
+        
+        void _init_camera();
         bool _toBase64(char* dest, const char* src, uint size);
+        int _wait_event_and_download (Camera *camera, int waittime, GPContext *context);
+        
         
         void _build_settings_tree(CameraWidget *w);
         void _read_widget(CameraWidget *w, ptree &tree, string node);
-        void _get_item_value(CameraWidget *w, ptree &tree);
+        void _get_item_value(CameraWidget *w, ptree &tree);        
         int _validate_widget(CameraWidget *w, const char *key, CameraWidget *child);
         
         static GPContextErrorFunc _error_callback(GPContext *context, const char *text, void *data);
