@@ -19,7 +19,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-#define CCA_ERROR_MESSAGE_FILE "/Users/tobi/Documents/c++/CameraControllerApi/CameraControllerApi/error_messages.xml"
+#define CCA_ERROR_MESSAGE_FILE "error_messages.xml"
 
 namespace CameraControllerApi {
     
@@ -27,6 +27,11 @@ namespace CameraControllerApi {
     using std::string;
     using boost::property_tree::ptree;
     using boost::property_tree::basic_ptree;
+    
+    typedef enum {
+        CCA_API_LIVEVIEW_START,
+        CCA_API_LIVEVIEW_STOP
+    } CCA_API_LIVEVIEW_MODES;
     
     typedef enum {
         CCA_API_RESPONSE_CAMERA_NOT_FOUND = -2,
@@ -49,6 +54,7 @@ namespace CameraControllerApi {
         bool set_focus_point(string focus_point, CCA_API_OUTPUT_TYPE type, string &output);
         bool shot(CCA_API_OUTPUT_TYPE type, string &output);
         bool burst(int number_of_images, CCA_API_OUTPUT_TYPE type, string &output);
+        bool liveview(CCA_API_LIVEVIEW_MODES mode, CCA_API_OUTPUT_TYPE type, string &output);
         static void buildResponse(ptree data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE resp, string &output);
         static void errorMessage(CCA_API_RESPONSE errnr, string &message);
     };

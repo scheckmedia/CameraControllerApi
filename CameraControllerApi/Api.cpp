@@ -7,8 +7,8 @@
 //
 
 #include "Api.h"
-
-
+#include "Settings.h"
+#include <boost/lexical_cast.hpp>
 
 using namespace CameraControllerApi;
 
@@ -52,14 +52,50 @@ bool Api::shot(CCA_API_OUTPUT_TYPE type, string &output){
     return true;
 }
 
+bool Api::liveview(CCA_API_LIVEVIEW_MODES mode, CCA_API_OUTPUT_TYPE type, string &output){
+    ptree tree;
+    if(mode == CCA_API_LIVEVIEW_START){
+        int ret = this->_cc->liveview_start();
+        if(ret){
+            string port, address;
+            Settings *sett = Settings::getInstance();
+            sett->get_value("preview.remote_port", port);
+            sett->get_value("preview.host", address);
+            
+            tree.put("port", port);
+            tree.put("ip_address", address);
+            
+            Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
+            
+        } else {
+            Api::buildResponse(tree, type, CCA_API_RESPONSE_INVALID, output);
+        }
+    } else {
+        int ret = this->_cc->liveview_stop();
+        if(ret){
+            tree.put("stop", "success");
+            Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
+            
+        } else {
+            Api::buildResponse(tree, type, CCA_API_RESPONSE_INVALID, output);
+        }
+
+    }
+    
+    
+    return true;
+}
+
 bool Api::burst(int number_of_images, CCA_API_OUTPUT_TYPE type, string &output){
+    int ret;
     ptree tree, images;
+    string base64image;
     char filename[256];
     
-    for(int i = 0; i <= number_of_images; i++){
-        string base64image;
+    for(int i = 0; i < number_of_images; i++){
+     
         snprintf(filename, 256, "shot-%04d.jpg", i);
-        int ret = this->_cc->capture(filename, base64image);
+//        int ret = this->_cc->previe
         if(ret){
             ptree image;
             image.put_value(base64image);
@@ -68,9 +104,9 @@ bool Api::burst(int number_of_images, CCA_API_OUTPUT_TYPE type, string &output){
             return false;
         }
     }
-    tree.put_child("images", images);
-    Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
+    tree.put_child("preview_images", images);
     
+    Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
     
     return true;
 }
