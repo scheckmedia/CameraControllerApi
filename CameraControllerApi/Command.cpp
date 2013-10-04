@@ -25,9 +25,9 @@ Command::Command(Api *api){
     this->_api = api;
     set<string> params;
     string param_camera_settings[] = {"list", "aperture", "speed", "iso", "white_balance","focus_point","focus_mode"};
-    string param_execute[] = {"shot","time_lapse","burst"};
-    _valid_commands["/settings"] = set<string>(param_camera_settings, param_camera_settings + 6);
-    _valid_commands["/capture"] = set<string>(param_execute, param_execute + 3);
+    string param_execute[] = {"shot", "bulb", "time_lapse","burst", "live"};
+    _valid_commands["/settings"] = set<string>(param_camera_settings, param_camera_settings + 7);
+    _valid_commands["/capture"] = set<string>(param_execute, param_execute + 5);
 }
 
 int Command::execute(const string &url, const map<string, string> &argvals, string &response){
@@ -97,6 +97,19 @@ bool Command::_executeAPI(const string &url, const set<string> &actions, const m
             string param = iterator->second;
             boost::trim(param);
             ret = this->_api->burst(atoi(param.c_str()), type, response);
+        } else if(actions.find("live") != actions.end()){
+            map<string,string>::const_iterator iterator = urlparams.find("todo");
+            if(iterator == urlparams.end()){
+                return false;
+            }
+            
+            string param = iterator->second;
+            boost::trim(param);
+            if(param.compare("start") == 0)
+                ret = this->_api->liveview(CCA_API_LIVEVIEW_START, type, response);
+            else
+                ret = this->_api->liveview(CCA_API_LIVEVIEW_STOP, type, response);
+
         }
     }
     return ret;
