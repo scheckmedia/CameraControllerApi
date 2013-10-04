@@ -33,7 +33,7 @@ Server::Server(int port){
 
 void *Server::initial(void *context){
     Server *s = (Server *)context;
-    CameraController *cc = new CameraController();
+    CameraController *cc = CameraController::getInstance();
     if(cc->is_initialized()){
         s->api = new Api(cc);
         s->cmd = new Command(s->api);
