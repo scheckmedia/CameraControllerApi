@@ -47,16 +47,22 @@ namespace CameraControllerApi {
     class Api {
     private:
         CameraController *_cc;
-        bool _buildCameraNot(CCA_API_RESPONSE resp, CCA_API_OUTPUT_TYPE type, string &output);
+        bool _buildCameraNotFound(CCA_API_RESPONSE resp, CCA_API_OUTPUT_TYPE type, string &output);
+        bool _set_settings_value(string key, string value, CCA_API_OUTPUT_TYPE type, string &output);
     public:
         Api(CameraController *cc);
+        static void buildResponse(ptree data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE resp, string &output);
+        static void errorMessage(CCA_API_RESPONSE errnr, string &message);        
         bool list_settings(CCA_API_OUTPUT_TYPE type, string &output);
         bool set_focus_point(string focus_point, CCA_API_OUTPUT_TYPE type, string &output);
+        bool set_aperture(string aperture, CCA_API_OUTPUT_TYPE type, string &output);
+        bool set_speed(string speed, CCA_API_OUTPUT_TYPE type, string &output);
+        bool set_iso(string iso, CCA_API_OUTPUT_TYPE type, string &output);
+        bool set_whitebalance(string wb, CCA_API_OUTPUT_TYPE type, string &output);
         bool shot(CCA_API_OUTPUT_TYPE type, string &output);
+        bool autofocus(CCA_API_OUTPUT_TYPE type, string &output);
         bool burst(int number_of_images, CCA_API_OUTPUT_TYPE type, string &output);
-        bool liveview(CCA_API_LIVEVIEW_MODES mode, CCA_API_OUTPUT_TYPE type, string &output);
-        static void buildResponse(ptree data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE resp, string &output);
-        static void errorMessage(CCA_API_RESPONSE errnr, string &message);
+        bool liveview(CCA_API_LIVEVIEW_MODES mode, CCA_API_OUTPUT_TYPE type, string &output);        
     };
 }
 

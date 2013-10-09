@@ -18,7 +18,7 @@ Api::Api(CameraController *cc){
 
 bool Api::list_settings(CCA_API_OUTPUT_TYPE type, string &output){
     if(this->_cc->camera_found() == false)
-        return this->_buildCameraNot(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
    
     ptree settings;
     this->_cc->get_settings(settings);
@@ -27,17 +27,44 @@ bool Api::list_settings(CCA_API_OUTPUT_TYPE type, string &output){
 }
 
 bool Api::set_focus_point(string focus_point, CCA_API_OUTPUT_TYPE type, string &output){
-    ptree tree;
-    int ret = this->_cc->set_settings_value("d108", focus_point.c_str());
-    if(ret)
-        Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
-    else
-        Api::buildResponse(tree, type, CCA_API_RESPONSE_INVALID, output);
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
     
-    return true;
+    return this->_set_settings_value("d108", focus_point, type, output);
+}
+
+bool Api::set_aperture(string aperture, CCA_API_OUTPUT_TYPE type, string &output){
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
+    
+    return this->_set_settings_value("f-number", aperture, type, output);
+}
+
+bool Api::set_speed(string speed, CCA_API_OUTPUT_TYPE type, string &output){
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
+    
+    return this->_set_settings_value("shutterspeed2", speed, type, output);
+}
+
+bool Api::set_iso(string iso, CCA_API_OUTPUT_TYPE type, string &output){
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
+    
+    return this->_set_settings_value("iso", iso, type, output);
+}
+
+bool Api::set_whitebalance(string wb, CCA_API_OUTPUT_TYPE type, string &output){
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
+    
+    return this->_set_settings_value("whitebalance", wb, type, output);
 }
 
 bool Api::shot(CCA_API_OUTPUT_TYPE type, string &output){
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
+    
     ptree tree;
     string image;
     int ret = this->_cc->capture("image.jpg", image);
@@ -53,6 +80,9 @@ bool Api::shot(CCA_API_OUTPUT_TYPE type, string &output){
 }
 
 bool Api::liveview(CCA_API_LIVEVIEW_MODES mode, CCA_API_OUTPUT_TYPE type, string &output){
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
+    
     ptree tree;
     if(mode == CCA_API_LIVEVIEW_START){
         int ret = this->_cc->liveview_start();
@@ -87,7 +117,10 @@ bool Api::liveview(CCA_API_LIVEVIEW_MODES mode, CCA_API_OUTPUT_TYPE type, string
 }
 
 bool Api::burst(int number_of_images, CCA_API_OUTPUT_TYPE type, string &output){
-    int ret;
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
+    
+    int ret = 0;
     ptree tree, images;
     string base64image;
     char filename[256];
@@ -95,7 +128,6 @@ bool Api::burst(int number_of_images, CCA_API_OUTPUT_TYPE type, string &output){
     for(int i = 0; i < number_of_images; i++){
      
         snprintf(filename, 256, "shot-%04d.jpg", i);
-//        int ret = this->_cc->previe
         if(ret){
             ptree image;
             image.put_value(base64image);
@@ -111,13 +143,28 @@ bool Api::burst(int number_of_images, CCA_API_OUTPUT_TYPE type, string &output){
     return true;
 }
 
-bool Api::_buildCameraNot(CCA_API_RESPONSE resp, CCA_API_OUTPUT_TYPE type, string &output){
+bool Api::autofocus(CCA_API_OUTPUT_TYPE type, string &output){
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
+    
+    string value;
+    this->_cc->get_settings_value("autofocusdrive", (void *)&value);
+    if(value.empty()){
+        int val = atoi(value.c_str());
+        val++;
+        value = boost::lexical_cast<string>(val);
+    }
+    this->_set_settings_value("autofocusdrive", value, type, output);
+    return true;
+}
+
+bool Api::_buildCameraNotFound(CCA_API_RESPONSE resp, CCA_API_OUTPUT_TYPE type, string &output){    
     ptree n;
     Api::buildResponse(n, type, resp, output);
     return false;
 }
 
-void Api::buildResponse(ptree data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE resp, string &output){
+void Api::buildResponse(ptree data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE resp, string &output){    
     try{
         boost::property_tree::ptree root;
         std::stringstream ss;
@@ -143,14 +190,27 @@ void Api::buildResponse(ptree data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE r
     } catch(std::exception &e){
         std::cout<<"Error: " << e.what();
     }
+}
+
+bool Api::_set_settings_value(string key, string value, CCA_API_OUTPUT_TYPE type, string &output){
+    ptree tree;
+    int ret = this->_cc->set_settings_value(key.c_str(), value.c_str());
+    if(ret)
+        Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
+    else
+        Api::buildResponse(tree, type, CCA_API_RESPONSE_INVALID, output);
     
+    return ret;
 }
 
 void Api::errorMessage(CCA_API_RESPONSE errnr, string &message){
     try {
         boost::property_tree::ptree pt;
         boost::property_tree::read_xml(CCA_ERROR_MESSAGE_FILE, pt);
-        string error_id = std::to_string(errnr);
+        std::ostringstream errorstr;
+        errorstr << errnr;
+        
+        string error_id = errorstr.str();
 
         BOOST_FOREACH(boost::property_tree::ptree::value_type &v, pt.get_child("CCA.errors")){
             std::string id = v.second.get_child("<xmlattr>.id").data();
