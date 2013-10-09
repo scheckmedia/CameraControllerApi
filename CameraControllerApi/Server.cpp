@@ -34,16 +34,20 @@ Server::Server(int port){
 void *Server::initial(void *context){
     Server *s = (Server *)context;
     CameraController *cc = CameraController::getInstance();
+    
     if(cc->is_initialized()){
         s->api = new Api(cc);
         s->cmd = new Command(s->api);
         s->http();
     }
+    
     return 0;
 }
 
 void Server::terminate(int sig){
     this->_shoulNotExit = 0;
+    CameraController *cc = CameraController::getInstance();
+    cc->release();
 }
 
 int Server::send_bad_response( struct MHD_Connection *connection)
@@ -86,7 +90,7 @@ int Server::url_handler (void *cls,
     printf("connection received %s", method);
     int ret;
     map<string, string> url_args;
-    map<string, string>:: iterator  it;
+    map<string, string>::iterator  it;
 
     string respdata;
     
