@@ -9,34 +9,34 @@ You will get all valid data for a command from the "List" action.
 
 ###Settings###
 
-*List the configuration with validate values*
-http://device_ip:port/settings?action=list
+**List the configuration with validate values**
+`http://device_ip:port/settings?action=list`
 
-*ISO*
-http://device_ip:port/settings?action=iso&amp;value=200
+**ISO**
+`http://device_ip:port/settings?action=iso&amp;value=200`
 
-*Aperture*
-http://device_ip:port/settings?action=aperture&amp;value=f/22
+**Aperture**
+`http://device_ip:port/settings?action=aperture&amp;value=f/22`
 
-*Shutter Speed*
-http://device_ip:port/settings?action=speed&amp;value=1/1000
+**Shutter Speed**
+`http://device_ip:port/settings?action=speed&amp;value=1/1000`
 
-*Whitebalance*
-http://device_ip:port/settings?action=whitebalance&amp;value=Cloudy
+**Whitebalance**
+`http://device_ip:port/settings?action=whitebalance&amp;value=Cloudy`
 
 ###Capture###
 
-*take a picture*
-http://device_ip:port/capture?action=shot
+**take a picture**
+`http://device_ip:port/capture?action=shot`
 
-*autofocus*
-http://device_ip:port/capture?action=autofocus
+**autofocus**
+`http://device_ip:port/capture?action=autofocus`
 
-*start liveview*
-http://device_ip:port/capture?action=live&value=start
+**start liveview**
+`http://device_ip:port/capture?action=live&value=start`
 <small>Returns a file with connection data. The command will open a socket with which you can connect to get the stream data.</small>
 
-*end liveview*
+**end liveview**
 http://device_ip:port/capture?action=live&value=end
 
 
