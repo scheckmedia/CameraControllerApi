@@ -8,26 +8,16 @@
 
 #include "CameraController.h"
 #include "Settings.h"
-#include <pthread.h>
 #include "Base64.h"
+#include <pthread.h>
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <string.h>
-
 
 #include <boost/lexical_cast.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/asio.hpp>
 
-#include <boost/archive/iterators/binary_from_base64.hpp>
-#include <boost/archive/iterators/base64_from_binary.hpp>
-#include <boost/archive/iterators/transform_width.hpp>
-#include <boost/archive/iterators/insert_linebreaks.hpp>
-#include <boost/archive/iterators/remove_whitespace.hpp>
-#include <boost/archive/iterators/ostream_iterator.hpp>
-
-#include <fcntl.h>
-#include <vector>
 
 using namespace CameraControllerApi;
 using namespace boost::system;
@@ -35,11 +25,6 @@ using namespace boost::asio;
 using namespace std;
 
 using boost::property_tree::ptree;
-using boost::archive::iterators::remove_whitespace;
-using boost::archive::iterators::transform_width;
-using boost::archive::iterators::insert_linebreaks;
-using boost::archive::iterators::base64_from_binary;
-using boost::archive::iterators::ostream_iterator;
 
 
 
@@ -49,12 +34,15 @@ CameraController* CameraController::getInstance(){
     if(_instance == NULL)
         _instance = new CameraController();
     
+    
     return _instance;
 }
 
 void CameraController::release(){
-    if(_instance != NULL)
+    if(_instance != NULL){
+        gp_camera_exit(_instance->_camera, _instance->_ctx);
         delete _instance;
+    }
     
     _instance = NULL;
     
@@ -83,8 +71,8 @@ void CameraController::_init_camera(){
 }
 
 CameraController::~CameraController(){
-    gp_camera_unref(this->_camera);
-    gp_context_unref(this->_ctx);
+    gp_camera_exit(this->_camera, this->_ctx);
+    gp_context_unref(this->_ctx);    
 }
 
 
@@ -105,24 +93,40 @@ int CameraController::capture(const char *filename, string &data){
 	strcpy(path.name, filename);
     
 	ret = gp_camera_capture(this->_camera, GP_CAPTURE_IMAGE, &path, this->_ctx);
+    if (ret != GP_OK)
+        return ret;
     
     //fd  = open(filename, O_CREAT | O_WRONLY, 0644);
 	ret = gp_file_new(&file);
+
+    if (ret != GP_OK)
+        return ret;
+    
 	ret = gp_camera_file_get(this->_camera, path.folder, path.name, GP_FILE_TYPE_NORMAL, file, this->_ctx);
+    
+    if (ret != GP_OK)
+        return ret;
+    
     unsigned long int file_size = 0;
     const char *file_data = NULL;
 
 	ret = gp_file_get_data_and_size (file, &file_data, &file_size);
+    
+    if (ret != GP_OK)
+        return ret;
 
+    //char *dest = new char[file_size];
     char *dest = (char*)malloc(file_size * sizeof(char*));
     base64_encode(dest, (char*)file_data, (int)file_size);
     data.append(dest);
     
     ret = gp_camera_file_delete(this->_camera, path.folder, path.name, this->_ctx);
-    
+
     free(dest);
     gp_file_free(file);
     
+    if (ret != GP_OK)
+        return ret;
     
     int waittime = 10;
     CameraEventType type;
@@ -130,7 +134,9 @@ int CameraController::capture(const char *filename, string &data){
     
     printf("Wait for events from camera\n");
     while(1) {
-        ret = gp_camera_wait_for_event(this->_camera, waittime, &type, &eventdata, this->_ctx);
+        
+        gp_camera_wait_for_event(this->_camera, waittime, &type, &eventdata, this->_ctx);
+        
         if(type == GP_EVENT_TIMEOUT) {
             break;
         }
@@ -147,9 +153,7 @@ int CameraController::capture(const char *filename, string &data){
 
 int CameraController::preview(const char **file_data){
     int ret;
-    CameraFile *file;
-    char output_file[32] = "test-file.jpg";
-    
+    CameraFile *file;    
     ret = gp_file_new(&file);
     if (ret != GP_OK)
         return ret;
@@ -164,13 +168,14 @@ int CameraController::preview(const char **file_data){
     
     if(ret != GP_OK)
         return ret;
-    gp_file_save(file, output_file);
-    //gp_file_free(file);
+
+    // FIXME: not working...
+    //gp_file_unref(file);
     return (int)file_size;
 }
 
 int CameraController::liveview_stop(){
-    this->_live_view_running = false;
+    this->_running_process = false;
     return true;
 }
 
@@ -178,9 +183,7 @@ int CameraController::liveview_start(){
     pthread_t tLiveServer;
     if (0 != pthread_create(&tLiveServer, NULL, CameraController::start_liveview_server, this)) {
         return false;
-    }
-    //pthread_join(tLiveServer, NULL);
-    
+    }    
     return true;
 }
 
@@ -228,16 +231,16 @@ int CameraController::get_settings_value(const char *key, void *val){
 
 int CameraController::set_settings_value(const char *key, const char *val){
 
-    CameraWidget *w, *focusWidget;
+    CameraWidget *w, *child;
     int ret = gp_camera_get_config(this->_camera, &w, this->_ctx);
     if(ret < GP_OK)
         return false;
     
-    ret = gp_widget_get_child_by_name(w, key, &focusWidget);
+    ret = gp_widget_get_child_by_name(w, key, &child);
     if(ret < GP_OK)
         return false;
     
-    ret = gp_widget_set_value(focusWidget, val);
+    ret = gp_widget_set_value(child, val);
     if(ret < GP_OK)
         return false;
     
@@ -246,37 +249,6 @@ int CameraController::set_settings_value(const char *key, const char *val){
     
     gp_widget_free(w);
     return (ret == GP_OK);
-}
-
-
-/** borrowed http://stackoverflow.com/a/12784770 */
-bool CameraController::_toBase64(char* dest, const char* src, uint size){
-    char tail[3] = {0,0,0};
-    typedef base64_from_binary<transform_width<const char *, 6, 8> > base64_enc;
-    
-    uint one_third_len = size/3;
-    uint len_rounded_down = one_third_len*3;
-    uint j = len_rounded_down + one_third_len;
-    std::copy(base64_enc(src), base64_enc(src + len_rounded_down), dest);
-    
-    if (len_rounded_down != size)
-    {
-        uint i=0;
-        for(; i < size - len_rounded_down; ++i)
-        {
-            tail[i] = src[len_rounded_down+i];
-        }
-        
-        std::copy(base64_enc(tail), base64_enc(tail + 3), dest + j);
-        
-        for(i=size + one_third_len + 1; i < j+4; ++i)
-        {
-            dest[i] = '=';
-        }
-        
-    }
-    
-    return true;
 }
 
 
@@ -340,20 +312,15 @@ void CameraController::_get_item_value(CameraWidget *w, ptree &tree){
             tree.put("value", val);
             break;
         }
-        case GP_WIDGET_TOGGLE:{
-            //FIXME: problem with casting that value
-            /*
-             int *val = (int *)item_value;
-             if(val)
-             tree("value", *val);*/
+        case GP_WIDGET_TOGGLE:{            
+            int val = *((int*)&item_value);
+            tree.put<int>("value", val);
             break;
         }
             
         case GP_WIDGET_RANGE: {
-            //FIXME: problem with casting that value
-            /*float *val = (float *)item_value;
-             if(val)
-             tree("value", *val);*/
+            float val = *((float*)&item_value);
+            tree.put<float>("value", val);
             break;
         }
             
@@ -364,7 +331,7 @@ void CameraController::_get_item_value(CameraWidget *w, ptree &tree){
 
 void* CameraController::start_liveview_server(void *context){
     CameraController *cc = (CameraController *)context;
-    cc->_live_view_running = true;
+    cc->_running_process = true;
     
     string port;
     string host;
@@ -385,25 +352,15 @@ void* CameraController::start_liveview_server(void *context){
     
     try{
         acceptor.accept(sock);
-        
-        std::cout << "Server ready" << std::endl;
-        
-        while(cc->_live_view_running){
+        while(cc->_running_process){
             const char *data = NULL;
             int size = cc->preview(&data);
 
             if(size == 0) continue;
             else if(size < 0)break;
             
-            char net_size[4];
-            net_size[0] = (size >> 0);
-            net_size[1] = (size >> 8);
-            net_size[2] = (size >> 16);
-            net_size[3] = (size >> 24);
-            
-            
             printf("--------------------------------------\n");
-            printf("\n%d --- %li -- %s\n", size, sizeof(size), net_size);
+            printf("\n%d --- %u\n", size, sizeof(size));
             printf("--------------------------------------\n");            
         
             write(sock, buffer(&size, 4));
@@ -411,16 +368,13 @@ void* CameraController::start_liveview_server(void *context){
         }
     } catch(std::exception& e){
         printf("error %s:",e.what());
+        cc->_running_process = false;
     }
     
     sock.close();    
     gp_camera_exit(cc->_camera, cc->_ctx);
     
     return NULL;
-}
-
-int CameraController::_validate_widget(CameraWidget *w, const char *key, CameraWidget *child){
-    return true;
 }
 
 GPContextErrorFunc CameraController::_error_callback(GPContext *context, const char *text, void *data){

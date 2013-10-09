@@ -23,17 +23,11 @@ using boost::property_tree::ptree;
 
 namespace CameraControllerApi {
     
-    class CameraNotFound:public std::exception{
-    public:
-        CameraNotFound(const string m):msg(m){}
-        const char* what(){return msg.c_str();}
-    private:
-        string msg;            
-    };
-    
     class CameraController {    
         
     static void* start_liveview_server(void *context);
+    static GPContextErrorFunc _error_callback(GPContext *context, const char *text, void *data);
+    static GPContextMessageFunc _message_callback(GPContext *context, const char *text, void *data);
         
     public:
         bool camera_found();
@@ -55,7 +49,7 @@ namespace CameraControllerApi {
         static CameraController *_instance;        
         Camera *_camera;
         GPContext *_ctx;
-        bool _live_view_running;
+        bool _running_process;
         bool _camera_found;
         bool _is_initialized;
         
@@ -63,17 +57,12 @@ namespace CameraControllerApi {
         ~CameraController();
         
         void _init_camera();
-        bool _toBase64(char* dest, const char* src, uint size);
         int _wait_event_and_download (Camera *camera, int waittime, GPContext *context);
         
         
         void _build_settings_tree(CameraWidget *w);
         void _read_widget(CameraWidget *w, ptree &tree, string node);
-        void _get_item_value(CameraWidget *w, ptree &tree);        
-        int _validate_widget(CameraWidget *w, const char *key, CameraWidget *child);
-        
-        static GPContextErrorFunc _error_callback(GPContext *context, const char *text, void *data);
-        static GPContextMessageFunc _message_callback(GPContext *context, const char *text, void *data);
+        void _get_item_value(CameraWidget *w, ptree &tree);                
     };
 }
 
