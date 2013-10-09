@@ -22,6 +22,8 @@ namespace CameraControllerApi {
     using boost::property_tree::basic_ptree;
     
     class Settings {
+    
+        static Settings *_instance;    
     public:
         static Settings* getInstance();
         static void release();
@@ -30,8 +32,7 @@ namespace CameraControllerApi {
     private:
         Settings();
         ~Settings(){};
-        ptree _pt;
-        static Settings *_instance;
+        ptree _pt;        
         
     };
 }
