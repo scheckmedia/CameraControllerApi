@@ -68,3 +68,10 @@ You will get all valid data for a command from the "List" action.
 
 
 Each method will response with a JSON format. If you want an XML response you have to put the command "&amp;type=xml" on the end of the upper commands
+
+
+##Dependencies##
++ libgphoto2-2.5.2
++ libboost 
++ libboost-system
++ libmicrohttpd
