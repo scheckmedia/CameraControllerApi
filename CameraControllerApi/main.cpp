@@ -7,6 +7,8 @@
 //
 
 #include <iostream>
+#include <signal.h>
+#include <stdlib.h>
 #include "Settings.h"
 #include "Server.h"
 #include "CameraController.h"
@@ -16,15 +18,12 @@ using namespace CameraControllerApi;
 Server *srv;
 
 void sighandler(int sig){
-    srv->terminate(sig);
+    if(srv != NULL)
+        srv->terminate(sig);
 }
 
 int main(int argc, const char * argv[])
 {
-    if(argc != 2){
-        printf("%s PORT\n", argv[0]);
-        exit(1);
-    }
 
     try {
         string port;
