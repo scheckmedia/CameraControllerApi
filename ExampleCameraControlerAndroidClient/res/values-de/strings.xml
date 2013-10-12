@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">KameraFB</string>
+    <string name="action_settings">Einstellungen</string>
+    
+    <string name="connectionfailed">Verbindung zum RasPi ist fehlgeschlagen :-(</string>
+    <string name="othertool">Bist du dir sicher, dass du den richtigen Port gewählt hast?</string>
+    <string name="focus">Fokussieren</string>
+    <string name="picture">Bild</string>
+    <string name="ipad">IP-Adresse</string>
+    <string name="ipad_summary">Bitte trage hier deine IP-Adresse ein.</string>
+    <string name="portnum">Port-Nummer</string>
+    <string name="portnum_summary">Bitte trage hier deine Port-Nummer ein.</string>
+
+</resources>
