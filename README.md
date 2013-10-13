@@ -67,7 +67,22 @@ You will get all valid data for a command from the "List" action.
 
 
 
-Each method will response with a file in json format. If you want an XML response you have to put the command "&amp;type=xml" on the end of the upper commands
+###File system###
+
+**list of the available images on camera**
+
+`http://device_ip:port/fs?action=list`
+
+
+
+**get an image**
+
+`http://device_ip:port/fs?action=get&value=filename.jpg&path=/path/to/file`
+
+
+
+
+Each method will response with a file in json format. If you want a XML response you have to put the command "&amp;type=xml" on the end of the upper commands
 
 
 ##Dependencies##
