@@ -44,6 +44,8 @@ namespace CameraControllerApi {
         int get_settings(ptree &sett);
         int get_settings_value(const char *key, void *val);
         int set_settings_value(const char *key, const char *val);
+        int get_files(ptree &tree);
+        int get_file(const char *filename, const char *filepath, string &base64out);
                 
     private:
         static CameraController *_instance;        
@@ -59,10 +61,11 @@ namespace CameraControllerApi {
         void _init_camera();
         int _wait_event_and_download (Camera *camera, int waittime, GPContext *context);
         
-        
+        int _get_files(ptree &tree, const char *folder);
         void _build_settings_tree(CameraWidget *w);
         void _read_widget(CameraWidget *w, ptree &tree, string node);
-        void _get_item_value(CameraWidget *w, ptree &tree);                
+        void _get_item_value(CameraWidget *w, ptree &tree);
+        int _file_to_base64(CameraFile *file, string &output);
     };
 }
 

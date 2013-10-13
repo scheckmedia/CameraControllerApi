@@ -107,22 +107,9 @@ int CameraController::capture(const char *filename, string &data){
     if (ret != GP_OK)
         return ret;
     
-    unsigned long int file_size = 0;
-    const char *file_data = NULL;
-
-	ret = gp_file_get_data_and_size (file, &file_data, &file_size);
-    
-    if (ret != GP_OK)
-        return ret;
-
-    //char *dest = new char[file_size];
-    char *dest = (char*)malloc(file_size * sizeof(char*));
-    base64_encode(dest, (char*)file_data, (int)file_size);
-    data.append(dest);
+    this->_file_to_base64(file, data);
     
     ret = gp_camera_file_delete(this->_camera, path.folder, path.name, this->_ctx);
-
-    free(dest);
     gp_file_free(file);
     
     if (ret != GP_OK)
@@ -188,6 +175,83 @@ int CameraController::liveview_start(){
 }
 
 int CameraController::trigger(){
+    
+    return true;
+}
+
+int CameraController::get_files(ptree &tree){
+    return this->_get_files(tree, "/");
+}
+
+int CameraController::get_file(const char *filename, const char *filepath, string &base64out){
+    int ret;
+    CameraFile *file;
+    
+    ret = gp_file_new(&file);
+    if(ret < GP_OK)
+        return ret;
+    
+    ret = gp_camera_file_get(this->_camera, filepath, filename, GP_FILE_TYPE_NORMAL, file, this->_ctx);
+    if(ret < GP_OK)
+        return ret;
+    
+    this->_file_to_base64(file, base64out);
+    return true;
+}
+
+int CameraController::_get_files(ptree &tree, const char *path){
+    int ret;
+    
+    const char	*name;
+    CameraList *folder, *files;
+    
+    ret = gp_list_new(&folder);
+    if(ret < GP_OK)
+        return ret;
+    
+    ret = gp_camera_folder_list_folders(this->_camera, path,  folder, this->_ctx);
+    if(ret < GP_OK)
+        return ret;
+    
+    int count_folders = gp_list_count(folder);
+    
+    if(count_folders){
+        for(int i = 0; i < count_folders; i++){
+            gp_list_get_name(folder, i, &name);
+            
+            string abspath(path);
+            abspath.append(name);
+            abspath.append("/");
+            
+            this->_get_files(tree, abspath.c_str());
+        }
+    } else {
+        ret = gp_list_new(&files);
+        if(ret < GP_OK)
+            return ret;
+        
+        ret = gp_camera_folder_list_files(this->_camera, path, files, this->_ctx);
+        if(ret < GP_OK)
+            return ret;
+        
+        int count_files = gp_list_count(files);
+        
+        ptree current_folder, filelist;
+        current_folder.put("absoulte_path", path);
+        
+        for(int j = 0; j < count_files; j++){
+            gp_list_get_name(files, j, &name);
+            
+            ptree valuechild;
+            valuechild.put_value(name);
+            filelist.push_back(std::make_pair("", valuechild));
+        }
+        current_folder.put_child("files", filelist);        
+        tree.put_child("folder", current_folder);
+        gp_list_free(files);
+
+    }
+    gp_list_free(folder);
     
     return true;
 }
@@ -329,6 +393,25 @@ void CameraController::_get_item_value(CameraWidget *w, ptree &tree){
     }
 }
 
+int CameraController::_file_to_base64(CameraFile *file, string &output){
+    int ret;
+    unsigned long int file_size = 0;
+    const char *file_data = NULL;
+    
+	ret = gp_file_get_data_and_size (file, &file_data, &file_size);
+    
+    if (ret != GP_OK)
+        return ret;
+    
+    //char *dest = new char[file_size];
+    char *dest = (char*)malloc(file_size * sizeof(char*));
+    base64_encode(dest, (char*)file_data, (int)file_size);
+    output.append(dest);
+    free(dest);
+    
+    return true;
+}
+
 void* CameraController::start_liveview_server(void *context){
     CameraController *cc = (CameraController *)context;
     cc->_running_process = true;
@@ -360,7 +443,7 @@ void* CameraController::start_liveview_server(void *context){
             else if(size < 0)break;
             
             printf("--------------------------------------\n");
-            printf("\n%d --- %u\n", size, sizeof(size));
+            printf("\n%d\n", size);
             printf("--------------------------------------\n");            
         
             write(sock, buffer(&size, 4));
