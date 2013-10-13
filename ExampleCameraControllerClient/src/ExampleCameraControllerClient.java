@@ -34,6 +34,7 @@ import java.util.List;
 
 import javax.swing.JPanel;
 
+import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Image;
 import javax.swing.GroupLayout;
@@ -90,11 +91,11 @@ public class ExampleCameraControllerClient {
 	 */
 	private void initialize() {
 		frame = new JFrame();
+		frame.setResizable(false);
 		frame.setBounds(100, 100, 800, 600);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		tbStatus = new JTextPane();
-		tbStatus.setBounds(12, 556, 788, 16);		
 		tbStatus.setForeground(Color.white);
 		tbStatus.setBackground(Color.red);
 		tbStatus.setText("");
@@ -106,6 +107,7 @@ public class ExampleCameraControllerClient {
 		imageFrame = new SimpleImageFrame();
 		imageFrame.setBounds(panel.getX(), panel.getY(), panel.getWidth(), panel.getHeight());		
 		imageFrame.setBackground(Color.BLACK);
+		imageFrame.setLayout(new FlowLayout(FlowLayout.CENTER));
 		panel = imageFrame;				
 		
 		liveView = new Thread(){
@@ -176,7 +178,6 @@ public class ExampleCameraControllerClient {
 		
 		
 		JButton btnSendRequest = new JButton("Take a picture");
-		btnSendRequest.setBounds(6, 5, 133, 29);
 		btnSendRequest.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
@@ -220,7 +221,6 @@ public class ExampleCameraControllerClient {
 		});		
 		
 		JButton btnStartLiveview = new JButton("Start live view");
-		btnStartLiveview.setBounds(279, 5, 128, 29);
 		btnStartLiveview.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {					
@@ -232,7 +232,6 @@ public class ExampleCameraControllerClient {
 		});
 		
 		JButton btnStopLiveview = new JButton("Stop live view");
-		btnStopLiveview.setBounds(413, 5, 128, 29);
 		btnStopLiveview.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {								
 				sendJsonRequest("http://"+DEVICE_IP+"/capture?action=live&value=stop");
@@ -253,10 +252,8 @@ public class ExampleCameraControllerClient {
 				}).start();	
 			}
 		});
-		btnAutofocus.setBounds(145, 5, 128, 29);
 		
 		JLabel lblIso = new JLabel("ISO");
-		lblIso.setBounds(12, 45, 21, 16);
 		
 		cbIso = new JComboBox();
 		cbIso.addActionListener(new ActionListener() {
@@ -271,7 +268,6 @@ public class ExampleCameraControllerClient {
 				}).start();
 			}
 		});
-		cbIso.setBounds(45, 40, 100, 27);
 		
 		cbAperture = new JComboBox();
 		cbAperture.addActionListener(new ActionListener() {
@@ -287,10 +283,8 @@ public class ExampleCameraControllerClient {
 				}).start();
 			}
 		});
-		cbAperture.setBounds(236, 41, 100, 27);
 		
 		JLabel lblAperture = new JLabel("Aperture");
-		lblAperture.setBounds(172, 45, 64, 16);
 		
 		cbShutterSpeed = new JComboBox();
 		cbShutterSpeed.addActionListener(new ActionListener() {
@@ -305,23 +299,74 @@ public class ExampleCameraControllerClient {
 				}).start();
 			}
 		});
-		cbShutterSpeed.setBounds(453, 41, 100, 27);
 		
 		JLabel lblShutterSpeed = new JLabel("Shutter Speed");
-		lblShutterSpeed.setBounds(360, 45, 94, 16);
-		frame.getContentPane().setLayout(null);
 		frame.getContentPane().add(panel);
-		frame.getContentPane().add(tbStatus);
-		frame.getContentPane().add(lblIso);
-		frame.getContentPane().add(cbIso);
-		frame.getContentPane().add(btnSendRequest);
-		frame.getContentPane().add(btnAutofocus);
-		frame.getContentPane().add(btnStartLiveview);
-		frame.getContentPane().add(btnStopLiveview);
-		frame.getContentPane().add(lblAperture);
-		frame.getContentPane().add(cbAperture);
-		frame.getContentPane().add(lblShutterSpeed);
-		frame.getContentPane().add(cbShutterSpeed);
+		GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
+		groupLayout.setHorizontalGroup(
+			groupLayout.createParallelGroup(Alignment.LEADING)
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(6)
+					.addComponent(btnSendRequest)
+					.addGap(6)
+					.addComponent(btnAutofocus, GroupLayout.PREFERRED_SIZE, 128, GroupLayout.PREFERRED_SIZE)
+					.addGap(6)
+					.addComponent(btnStartLiveview, GroupLayout.PREFERRED_SIZE, 128, GroupLayout.PREFERRED_SIZE)
+					.addGap(6)
+					.addComponent(btnStopLiveview, GroupLayout.PREFERRED_SIZE, 128, GroupLayout.PREFERRED_SIZE))
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(12)
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
+							.addComponent(tbStatus, GroupLayout.DEFAULT_SIZE, 782, Short.MAX_VALUE)
+							.addContainerGap())
+						.addGroup(groupLayout.createSequentialGroup()
+							.addComponent(lblIso)
+							.addGap(12)
+							.addComponent(cbIso, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
+							.addGap(27)
+							.addComponent(lblAperture, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE)
+							.addComponent(cbAperture, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
+							.addGap(24)
+							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+								.addGroup(groupLayout.createSequentialGroup()
+									.addGap(93)
+									.addComponent(cbShutterSpeed, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE))
+								.addComponent(lblShutterSpeed, GroupLayout.PREFERRED_SIZE, 94, GroupLayout.PREFERRED_SIZE)))))
+		);
+		groupLayout.setVerticalGroup(
+			groupLayout.createParallelGroup(Alignment.LEADING)
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(5)
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addComponent(btnSendRequest)
+						.addComponent(btnAutofocus)
+						.addComponent(btnStartLiveview)
+						.addComponent(btnStopLiveview))
+					.addGap(6)
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addGroup(groupLayout.createSequentialGroup()
+							.addGap(5)
+							.addComponent(lblIso))
+						.addComponent(cbIso, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addGroup(groupLayout.createSequentialGroup()
+							.addGap(5)
+							.addComponent(lblAperture))
+						.addGroup(groupLayout.createSequentialGroup()
+							.addGap(1)
+							.addComponent(cbAperture, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addGroup(groupLayout.createSequentialGroup()
+							.addGap(1)
+							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+								.addComponent(cbShutterSpeed, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addGroup(groupLayout.createSequentialGroup()
+									.addGap(4)
+									.addComponent(lblShutterSpeed)))))
+					.addGap(488)
+					.addComponent(tbStatus, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap())
+		);
+		frame.getContentPane().setLayout(groupLayout);
 	}
 		
 	
@@ -343,6 +388,9 @@ public class ExampleCameraControllerClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		tbStatus.setText("can't connect to " + DEVICE_IP);
+		toggleLoading();
 		return null;
 		
 	}
@@ -355,7 +403,7 @@ public class ExampleCameraControllerClient {
 			String status = (String)resp.get("state");			
 			tbStatus.setText(status);
 			
-			if(status.equalsIgnoreCase("success")){
+			if(status.equalsIgnoreCase("success")){				
 				JSONObject data = (JSONObject)resp.get("data");
 				JSONObject main = (JSONObject)data.get("main");
 				JSONObject imgsettings = (JSONObject)main.get("imgsettings");
