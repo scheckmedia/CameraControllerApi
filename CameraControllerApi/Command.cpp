@@ -29,7 +29,7 @@ Command::Command(Api *api){
     string param_files[] = {"list", "get", "delete"};
     _valid_commands["/settings"] = set<string>(param_camera_settings, param_camera_settings + 7);
     _valid_commands["/capture"] = set<string>(param_execute, param_execute + 6);
-    _valid_commands["/fs"] = set<string>(param_files, param_execute + 3);
+    _valid_commands["/fs"] = set<string>(param_files, param_files + 3);
 }
 
 int Command::execute(const string &url, const map<string, string> &argvals, string &response){
