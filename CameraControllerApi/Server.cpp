@@ -7,6 +7,7 @@
 //
 
 #include <pthread.h>
+#include "Settings.h"
 #include "Server.h"
 #include <map>
 #include <string>
@@ -67,6 +68,23 @@ int Server::send_bad_response( struct MHD_Connection *connection)
     return ret;
 }
 
+int Server::send_auth_fail( struct MHD_Connection *connection)
+{
+    static char *bad_response = (char *)PAGE;
+    int bad_response_len = static_cast< int >(strlen(bad_response));
+    int ret;
+    struct MHD_Response *response;
+    
+    response = MHD_create_response_from_buffer ( bad_response_len,
+                                                bad_response,MHD_RESPMEM_PERSISTENT);
+    if (response == 0){
+        return MHD_NO;
+    }
+    ret = MHD_queue_basic_auth_fail_response(connection, "CameraControlerApi", response);
+    MHD_destroy_response (response);
+    return ret;
+}
+
 
 int Server::get_url_args(void *cls, MHD_ValueKind kind, const char *key , const char* value){
     map<string, string> *args = static_cast<map<string,string>*>(cls);
@@ -110,6 +128,26 @@ int Server::url_handler (void *cls,
     if(&aptr != *ptr){
         *ptr = &aptr;
         return MHD_YES;
+    }
+    
+    Settings *settings = Settings::getInstance();
+    
+    string auth;
+    bool auth_fail = false;
+    
+    settings->get_value("server.auth", auth);
+    if(auth.compare("true") == 0){
+        string username, password;
+        settings->get_value("server.username", username);
+        settings->get_value("server.password", password);
+        
+        char *user, *pass;
+        pass = NULL;
+        user = MHD_basic_auth_get_username_password(connection, &pass);
+        auth_fail = ((user == NULL) || (0 != username.compare(user)) || (0 != password.compare(pass)));
+        if(auth_fail)
+            return Server::send_auth_fail(connection);
+        
     }
     
     if(MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, Server::get_url_args, &url_args) < 0){

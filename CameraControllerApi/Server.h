@@ -20,6 +20,7 @@ namespace CameraControllerApi {
         
         static int get_url_args(void *cls, MHD_ValueKind kind, const char *key , const char* value);
         static int send_bad_response( struct MHD_Connection *connection);
+        static int send_auth_fail( struct MHD_Connection *connection);
         
     public:
         Server(int port);
