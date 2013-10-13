@@ -147,13 +147,15 @@ bool Api::autofocus(CCA_API_OUTPUT_TYPE type, string &output){
     if(this->_cc->camera_found() == false)
         return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
     
-    string value;
+    string value = "1";
+    /*
+     not needed
     this->_cc->get_settings_value("autofocusdrive", (void *)&value);
     if(value.empty()){
         int val = atoi(value.c_str());
         val++;
         value = boost::lexical_cast<string>(val);
-    }
+    }*/
     this->_set_settings_value("autofocusdrive", value, type, output);
     return true;
 }

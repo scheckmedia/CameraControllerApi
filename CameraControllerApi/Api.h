@@ -44,9 +44,19 @@ namespace CameraControllerApi {
         CCA_OUTPUT_TYPE_JSON
     } CCA_API_OUTPUT_TYPE;
     
+    /**
+     @class Api
+     @\brief responsible for the interaction between a command and the camera
+     */
     class Api {
     private:
         CameraController *_cc;
+        /**
+         @brief creates a "camera not found" method    
+         @param[in]     resp
+         @param[in]     type
+         @param[out]    output
+         */
         bool _buildCameraNotFound(CCA_API_RESPONSE resp, CCA_API_OUTPUT_TYPE type, string &output);
         bool _set_settings_value(string key, string value, CCA_API_OUTPUT_TYPE type, string &output);
     public:
