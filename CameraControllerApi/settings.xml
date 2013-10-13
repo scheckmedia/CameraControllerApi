@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CCA_SETTINGS>
+    <general>
+        <!-- if true, the images will saved on the sd card and not deleted -->
+        <save_images>true</save_images>
+    </general>
     <server>
+        <!-- enabled the http basic access authentication -->
         <auth>false</auth>
         <username>example</username>
         <password>example</password>
+        <!-- specifies the server listen port -->
         <port>8888</port>
     </server>
     <preview>
