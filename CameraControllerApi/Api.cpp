@@ -26,6 +26,40 @@ bool Api::list_settings(CCA_API_OUTPUT_TYPE type, string &output){
     return true;
 }
 
+bool Api::list_files(CCA_API_OUTPUT_TYPE type, string &output){
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
+    
+    ptree settings;
+    int ret = this->_cc->get_files(settings);
+    
+    if(ret)
+        Api::buildResponse(settings, type, CCA_API_RESPONSE_SUCCESS, output);
+    else
+        Api::buildResponse(settings, type, CCA_API_RESPONSE_INVALID, output);
+    
+    return true;
+}
+
+bool Api::get_file(string file, string path, CCA_API_OUTPUT_TYPE type, string &output){
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
+    
+    ptree tree;
+    string image;
+    int ret = this->_cc->get_file(file.c_str(), path.c_str(), image);
+    
+    if(ret){        
+        tree.put("image", image);
+        Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
+        
+    } else {
+        Api::buildResponse(tree, type, CCA_API_RESPONSE_INVALID, output);
+    }
+    
+    return ret;
+}
+
 bool Api::set_focus_point(string focus_point, CCA_API_OUTPUT_TYPE type, string &output){
     if(this->_cc->camera_found() == false)
         return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);

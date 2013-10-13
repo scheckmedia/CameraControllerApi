@@ -64,6 +64,8 @@ namespace CameraControllerApi {
         static void buildResponse(ptree data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE resp, string &output);
         static void errorMessage(CCA_API_RESPONSE errnr, string &message);        
         bool list_settings(CCA_API_OUTPUT_TYPE type, string &output);
+        bool list_files(CCA_API_OUTPUT_TYPE type, string &output);
+        bool get_file(string file, string path, CCA_API_OUTPUT_TYPE type, string &output);
         bool set_focus_point(string focus_point, CCA_API_OUTPUT_TYPE type, string &output);
         bool set_aperture(string aperture, CCA_API_OUTPUT_TYPE type, string &output);
         bool set_speed(string speed, CCA_API_OUTPUT_TYPE type, string &output);
