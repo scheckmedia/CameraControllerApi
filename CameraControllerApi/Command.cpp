@@ -102,6 +102,21 @@ bool Command::_executeAPI(const string &url, string action, const map<string, st
             ret = this->_api->autofocus(type, response);
         }
         
+    } else if(url == "/fs"){
+        if(action.compare("list") == 0){
+            ret = this->_api->list_files(type, response);
+        } else if(action.compare("get") == 0){
+            map<string,string>::const_iterator iterator = urlparams.find("path");
+            string path;
+            
+            if(iterator != urlparams.end()){
+                path = iterator->second;
+                boost::trim(value);
+                ret = this->_api->get_file(value, path, type, response);
+            } else {
+                ret = false;
+            }
+        }
     }
     return ret;
 }
@@ -115,8 +130,4 @@ bool Command::_validate(const void *data){
     }
     
     return true;
-}
-
-void Command::_getInvalidResponse(string& response){
-    response = "Some error in your data ";
 }
