@@ -52,6 +52,13 @@ void CameraController::release(){
 CameraController::CameraController(){
     if(!this->_camera_found){        
         this->_init_camera();
+        Settings *s = Settings::getInstance();
+        string val = "";
+        s->get_value("", val);
+        
+        this->_save_images = (bool)s;
+        if(this->_save_images)
+            this->_set_capturetarget(1);
     }
 }
 
@@ -65,7 +72,7 @@ void CameraController::_init_camera(){
     if(ret < GP_OK){
         gp_camera_free(this->_camera);
     } else {
-        this->_camera_found = true;
+        this->_camera_found = true;        
     }
     this->_is_initialized = true;
 }
@@ -85,7 +92,7 @@ bool CameraController::is_initialized(){
 }
 
 int CameraController::capture(const char *filename, string &data){
-    int ret;
+    int ret, fd ;
     CameraFile *file;
     CameraFilePath path;
        
@@ -96,9 +103,14 @@ int CameraController::capture(const char *filename, string &data){
     if (ret != GP_OK)
         return ret;
     
-    //fd  = open(filename, O_CREAT | O_WRONLY, 0644);
-	ret = gp_file_new(&file);
-
+    
+    if(this->_save_images == false){
+        ret = gp_file_new(&file);
+    } else {
+        fd  = open(filename, O_CREAT | O_RDWR, 0644);
+        ret = gp_file_new_from_fd(&file, fd);
+    }
+    
     if (ret != GP_OK)
         return ret;
     
@@ -109,11 +121,13 @@ int CameraController::capture(const char *filename, string &data){
     
     this->_file_to_base64(file, data);
     
-    ret = gp_camera_file_delete(this->_camera, path.folder, path.name, this->_ctx);
-    gp_file_free(file);
-    
-    if (ret != GP_OK)
-        return ret;
+    if(this->_save_images == false){
+        ret = gp_camera_file_delete(this->_camera, path.folder, path. name, this->_ctx);
+        gp_file_free(file);
+        
+        if (ret != GP_OK)
+            return ret;
+    }
     
     int waittime = 10;
     CameraEventType type;
@@ -272,6 +286,31 @@ int CameraController::get_settings(ptree &sett){
     return true;
 }
 
+int CameraController::get_settings_choices(const char *key, vector<string> &choices){
+    CameraWidget *w, *child;
+    int ret;
+    
+    ret = gp_camera_get_config(this->_camera, &w, this->_ctx);
+    if(ret < GP_OK){
+        return ret;
+    }
+    
+    ret = gp_widget_get_child_by_name(w, key, &child);
+    if(ret < GP_OK)
+        return ret;
+    
+    int count = gp_widget_count_choices(child);
+    for(int i = 0; i < count; i++){
+        const char *choice;
+        ret = gp_widget_get_choice(child, i, &choice);
+        
+        if(ret < GP_OK)
+            return ret;
+        
+        choices.push_back(string(choice));
+    }    
+    return true;
+}
 
 int CameraController::get_settings_value(const char *key, void *val){
     CameraWidget *w, *child;
@@ -313,6 +352,19 @@ int CameraController::set_settings_value(const char *key, const char *val){
     
     gp_widget_free(w);
     return (ret == GP_OK);
+}
+
+void CameraController::_set_capturetarget(int index){
+    vector<string> choices;
+    
+    int ret;
+    ret = this->get_settings_choices("capturetarget", choices);
+    
+    if(ret && index < choices.size()){
+        string choice = choices.at(index);
+        this->set_settings_value("capturetarget", choice.c_str());
+    }
+    
 }
 
 

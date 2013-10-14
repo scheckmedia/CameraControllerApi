@@ -43,6 +43,7 @@ namespace CameraControllerApi {
         int trigger();
         int get_settings(ptree &sett);
         int get_settings_value(const char *key, void *val);
+        int get_settings_choices(const char *key, std::vector<string> &choices);
         int set_settings_value(const char *key, const char *val);
         int get_files(ptree &tree);
         int get_file(const char *filename, const char *filepath, string &base64out);
@@ -54,6 +55,7 @@ namespace CameraControllerApi {
         bool _running_process;
         bool _camera_found;
         bool _is_initialized;
+        bool _save_images = true;
         
         CameraController();
         ~CameraController();
@@ -65,6 +67,7 @@ namespace CameraControllerApi {
         void _build_settings_tree(CameraWidget *w);
         void _read_widget(CameraWidget *w, ptree &tree, string node);
         void _get_item_value(CameraWidget *w, ptree &tree);
+        void _set_capturetarget(int index);
         int _file_to_base64(CameraFile *file, string &output);
     };
 }
