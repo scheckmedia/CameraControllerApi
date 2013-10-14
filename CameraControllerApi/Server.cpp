@@ -19,7 +19,6 @@ using namespace CameraControllerApi;
 
 #define PAGE "<html><head><title>Error</title></head><body></body></html>"
 
-
 Server::Server(int port){
     this->_port = port;
     this->_shoulNotExit = 1;
@@ -132,9 +131,7 @@ int Server::url_handler (void *cls,
     
     Settings *settings = Settings::getInstance();
     
-    string auth;
-    bool auth_fail = false;
-    
+    string auth;    
     settings->get_value("server.auth", auth);
     if(auth.compare("true") == 0){
         string username, password;
@@ -144,7 +141,7 @@ int Server::url_handler (void *cls,
         char *user, *pass;
         pass = NULL;
         user = MHD_basic_auth_get_username_password(connection, &pass);
-        auth_fail = ((user == NULL) || (0 != username.compare(user)) || (0 != password.compare(pass)));
+        bool auth_fail = ((user == NULL) || (0 != username.compare(user)) || (0 != password.compare(pass)));
         if(auth_fail)
             return Server::send_auth_fail(connection);
         
@@ -154,33 +151,77 @@ int Server::url_handler (void *cls,
         return Server::send_bad_response(connection);
     }
     
-    Server s = *(Server *)cls;  
-    s.cmd->execute(url, url_args, respdata);
     
-    *ptr = 0;
-    me = (char *)malloc(respdata.size() + 1);
-    if(me == 0)
-        return MHD_NO;
-    strncpy(me, respdata.c_str(), respdata.size() + 1);    
-
-    response = MHD_create_response_from_buffer(strlen(me), (void *)me, MHD_RESPMEM_MUST_COPY);
     
-    if(response == 0){
-        free(me);
-        return MHD_NO;
+    string webif;
+    settings->get_value("general.webif", webif);
+    
+    if(strcmp(url, "/webif") >= 0 && webif.compare("true") == 0){
+        struct stat buff;
+        int fd;
+        
+        char *file = strrchr(url, '/');
+        if(strcmp(file, "/") == 0)url = "webif/index.html";
+        
+        string filepath = "./";
+        filepath.append(url);
+        
+        if ( (-1 == (fd = open (filepath.c_str(), O_RDONLY))) || (0 != fstat (fd, &buff))){
+            if (fd != -1) close (fd);
+            return Server::send_bad_response(connection);
+        } 
+        
+        char *ext = strrchr(url, '.');
+        const char *mime;
+        if(strcmp(ext, ".js") == 0)
+            mime = "text/javascript";
+        else if(strcmp(ext, ".css") == 0)
+            mime = "text/css";
+        else if(strcmp(ext, ".jpg") == 0 || strcmp(ext, ".jpeg") == 0 || strcmp(ext, ".jpe") == 0)
+            mime = "image/jpeg";
+        else if(strcmp(ext, ".gif") == 0)
+            mime = "image/gif";
+        else if(strcmp(ext, ".png") == 0)
+            mime = "image/png";
+        else
+            mime = "text/html";
+        
+        
+        response = MHD_create_response_from_fd_at_offset (buff.st_size, fd, 0);
+        MHD_add_response_header (response, "Content-Type", mime);
+        
+    } else {
+        Server s = *(Server *)cls;
+        s.cmd->execute(url, url_args, respdata);
+        
+        *ptr = 0;
+        me = (char *)malloc(respdata.size() + 1);
+        if(me == 0)
+            return MHD_NO;
+        
+        strncpy(me, respdata.c_str(), respdata.size() + 1);
+        
+        response = MHD_create_response_from_buffer(strlen(me), (void *)me, MHD_RESPMEM_MUST_COPY);
+        
+        if(response == 0){
+            free(me);
+            return MHD_NO;
+        }
+        
+        it = url_args.find("type");
+        if (it != url_args.end() && strcasecmp(it->second.c_str(), "xml")) {
+            type = typexml;
+        }
+        
+        if(type == typejson)
+            MHD_add_response_header(response, "Content-Type", "application/json");
+        else {
+            MHD_add_response_header(response, "Content-Type", "application/xml");
+        }
+        MHD_add_response_header(response, "Content-Disposition", "attachment;filename=\"cca.json\"");
     }
     
-    it = url_args.find("type");
-    if (it != url_args.end() && strcasecmp(it->second.c_str(), "xml")) {
-        type = typexml;
-    }
     
-    if(type == typejson)
-        MHD_add_response_header(response, "Content-Type", "application/json");
-    else {        
-        MHD_add_response_header(response, "Content-Type", "application/xml");
-    }
-    MHD_add_response_header(response, "Content-Disposition", "attachment;filename=\"cca.json\"");
     ret = MHD_queue_response (connection, MHD_HTTP_OK, response);
     MHD_destroy_response(response);
     return ret;
