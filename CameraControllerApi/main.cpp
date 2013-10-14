@@ -11,9 +11,6 @@
 #include <stdlib.h>
 #include "Settings.h"
 #include "Server.h"
-#include "CameraController.h"
-#include "Api.h"
-
 using namespace CameraControllerApi;
 Server *srv;
 
