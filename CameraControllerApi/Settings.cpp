@@ -29,7 +29,7 @@ void Settings::release(){
 }
 
 Settings::Settings(){
-    boost::property_tree::read_xml(CCA_ERROR_SETTINGS_FILE, _pt);
+    boost::property_tree::read_xml(CCA_SETTINGS_FILE, _pt);
 }
 
 bool Settings::get_value(string key, string &res){

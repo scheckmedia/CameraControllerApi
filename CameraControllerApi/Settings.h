@@ -14,7 +14,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-#define CCA_ERROR_SETTINGS_FILE "settings.xml"
+#define CCA_SETTINGS_FILE "settings.xml"
 
 namespace CameraControllerApi {
     using std::string;
@@ -22,7 +22,6 @@ namespace CameraControllerApi {
     using boost::property_tree::basic_ptree;
     
     class Settings {
-    
         static Settings *_instance;    
     public:
         static Settings* getInstance();
@@ -32,6 +31,7 @@ namespace CameraControllerApi {
     private:
         Settings();
         ~Settings(){};
+        string _base_path;
         ptree _pt;        
         
     };
