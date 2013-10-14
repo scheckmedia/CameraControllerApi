@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CCA_SETTINGS>
     <general>
+        <!-- webinterface enable or disable  -->
+        <webif>true</webif>
         <!-- if true, the images will saved on the sd card and not deleted -->
         <save_images>true</save_images>
     </general>
