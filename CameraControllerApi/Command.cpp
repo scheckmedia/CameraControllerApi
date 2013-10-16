@@ -100,6 +100,8 @@ bool Command::_executeAPI(const string &url, string action, const map<string, st
                 ret = this->_api->liveview(CCA_API_LIVEVIEW_STOP, type, response);
         } else if(action.compare("autofocus") == 0){
             ret = this->_api->autofocus(type, response);
+        } else if(action.compare("bulb") == 0){
+            ret = this->_api->bulb(type, response);
         }
         
     } else if(url == "/fs"){
