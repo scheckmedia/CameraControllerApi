@@ -40,7 +40,7 @@ namespace CameraControllerApi {
         int preview(const char **file_data);
         int liveview_start();
         int liveview_stop();
-        int trigger();
+        int bulb(const char *filename, string &data);
         int get_settings(ptree &sett);
         int get_settings_value(const char *key, void *val);
         int get_settings_choices(const char *key, std::vector<string> &choices);
@@ -61,8 +61,7 @@ namespace CameraControllerApi {
         ~CameraController();
         
         void _init_camera();
-        int _wait_event_and_download (Camera *camera, int waittime, GPContext *context);
-        
+        int _wait_and_handle_event (long waittime, CameraEventType *type, int download);
         int _get_files(ptree &tree, const char *folder);
         void _build_settings_tree(CameraWidget *w);
         void _read_widget(CameraWidget *w, ptree &tree, string node);

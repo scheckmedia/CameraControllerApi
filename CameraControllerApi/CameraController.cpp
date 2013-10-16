@@ -188,8 +188,42 @@ int CameraController::liveview_start(){
     return true;
 }
 
-int CameraController::trigger(){
+int CameraController::bulb(const char *filename, string &data){
+    /*
+    This doesn't work with a nikon and i've no canon available
+     
+    int ret;
+    CameraEventType evtype;
+    std::vector<string> choices;
     
+    ret = this->get_settings_choices("shutterspeed2", choices);
+    size_t count = choices.size();
+    if(ret && count > 0){
+        string choice = choices.at(count - 1);
+        this->set_settings_value("shutterspeed2", choice.c_str());
+    }
+    
+    ret = this->set_settings_value("d100", "-1");
+    
+    CameraFile *file;
+    CameraFilePath path;
+    
+    strcpy(path.folder, "/");
+	strcpy(path.name, filename);
+    
+	ret = gp_camera_capture(this->_camera, GP_CAPTURE_IMAGE, &path, this->_ctx);
+    if (ret != GP_OK)
+        return ret;
+    
+    time_t lastsec = time(NULL)-3;
+    struct timeval	tval;
+    while(1){
+        ret = this->_wait_and_handle_event(5, &evtype, 1);
+    }
+    
+    if(ret != GP_OK)
+        return ret;
+    */
     return true;
 }
 
@@ -251,7 +285,7 @@ int CameraController::_get_files(ptree &tree, const char *path){
         int count_files = gp_list_count(files);
         
         ptree current_folder, filelist;
-        current_folder.put("absoulte_path", path);
+        current_folder.put("absolute_path", path);
         
         for(int j = 0; j < count_files; j++){
             gp_list_get_name(files, j, &name);
@@ -352,6 +386,54 @@ int CameraController::set_settings_value(const char *key, const char *val){
     
     gp_widget_free(w);
     return (ret == GP_OK);
+}
+
+
+/**
+ borrowed gphoto2
+ http://sourceforge.net/p/gphoto/code/HEAD/tree/trunk/gphoto2/gphoto2/main.c#l834
+ */
+int CameraController::_wait_and_handle_event (long waittime, CameraEventType *type, int download) {
+	int 		result;
+	CameraEventType	evtype;
+	void		*data;
+	CameraFilePath	*path;
+    
+	if (!type) type = &evtype;
+	evtype = GP_EVENT_UNKNOWN;
+	data = NULL;
+	result = gp_camera_wait_for_event(this->_camera, waittime, type, &data, this->_ctx);
+	if (result == GP_ERROR_NOT_SUPPORTED) {
+		*type = GP_EVENT_TIMEOUT;
+		usleep(waittime*1000);
+		return GP_OK;
+	}
+	if (result != GP_OK)
+		return result;
+	path = (CameraFilePath*)data;
+	switch (*type) {
+        case GP_EVENT_TIMEOUT:
+            break;
+        case GP_EVENT_CAPTURE_COMPLETE:
+            break;
+        case GP_EVENT_FOLDER_ADDED:
+            free (data);
+            break;
+        case GP_EVENT_FILE_ADDED:
+            //result = save_captured_file (path, download);
+            free (data);
+            /* result will fall through to final return */
+            break;
+        case GP_EVENT_UNKNOWN:
+#if 0 /* too much spam for the common usage */
+            printf (_("Event UNKNOWN %s during wait, ignoring.\n"), (char*)data);
+#endif
+            free (data);
+            break;
+        default:           
+            break;
+	}
+	return result;
 }
 
 void CameraController::_set_capturetarget(int index){
