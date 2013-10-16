@@ -73,6 +73,7 @@ namespace CameraControllerApi {
         bool set_whitebalance(string wb, CCA_API_OUTPUT_TYPE type, string &output);
         bool shot(CCA_API_OUTPUT_TYPE type, string &output);
         bool autofocus(CCA_API_OUTPUT_TYPE type, string &output);
+        bool bulb(CCA_API_OUTPUT_TYPE type, string &output);
         bool burst(int number_of_images, CCA_API_OUTPUT_TYPE type, string &output);
         bool liveview(CCA_API_LIVEVIEW_MODES mode, CCA_API_OUTPUT_TYPE type, string &output);        
     };

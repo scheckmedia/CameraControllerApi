@@ -150,6 +150,13 @@ bool Api::liveview(CCA_API_LIVEVIEW_MODES mode, CCA_API_OUTPUT_TYPE type, string
     return true;
 }
 
+bool Api::bulb(CCA_API_OUTPUT_TYPE type, string &output){
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);        
+    
+    return this->_cc->bulb("bulb.jpg", output);
+}
+
 bool Api::burst(int number_of_images, CCA_API_OUTPUT_TYPE type, string &output){
     if(this->_cc->camera_found() == false)
         return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
