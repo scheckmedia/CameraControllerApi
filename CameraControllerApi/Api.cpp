@@ -16,12 +16,63 @@ Api::Api(CameraController *cc){
     this->_cc = cc;
 }
 
+bool Api::status(CCA_API_OUTPUT_TYPE type, string &output){
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
+
+    ptree settings;
+    Api::buildResponse(settings, type, CCA_API_RESPONSE_SUCCESS, output);
+    
+    return true;
+}
+
+bool Api::init(CCA_API_OUTPUT_TYPE type, string &output){
+    this->_cc->init();
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
+    
+    ptree settings;
+    Api::buildResponse(settings, type, CCA_API_RESPONSE_SUCCESS, output);
+    
+    return true;
+}
+
 bool Api::list_settings(CCA_API_OUTPUT_TYPE type, string &output){
     if(this->_cc->camera_found() == false)
         return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
    
     ptree settings;
     this->_cc->get_settings(settings);
+    Api::buildResponse(settings, type, CCA_API_RESPONSE_SUCCESS, output);
+    return true;
+}
+
+bool Api::get_settings_by_key(string key, CCA_API_OUTPUT_TYPE type, string &output){
+    if(this->_cc->camera_found() == false)
+        return this->_buildCameraNotFound(CCA_API_RESPONSE_CAMERA_NOT_FOUND,type, output);
+    
+    ptree settings;
+    string value;
+    int ret;
+    ret = this->_cc->get_settings_value(key.c_str(), value);
+    
+    if(ret < GP_OK)
+        return ret;
+    
+    std::vector<string> choices;
+    ret = this->_cc->get_settings_choices(key.c_str(), choices);
+        
+    settings.put("value", value);
+    
+    ptree choices_items;
+    for(int i = 0; i < choices.size(); i++){
+        ptree choice_value;
+        string choice = choices.at(i);
+        
+        choice_value.put_value(choice);
+        choices_items.push_back(std::make_pair("", choice_value));        
+    }
+    settings.put_child("choices", choices_items);
     Api::buildResponse(settings, type, CCA_API_RESPONSE_SUCCESS, output);
     return true;
 }
