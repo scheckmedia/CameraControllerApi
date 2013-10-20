@@ -7,8 +7,8 @@
         <save_images>true</save_images>
         <!-- if enabled, you receive with the images on the filesystem an automatic generated thumbnail in the given size -->
         <thumbnail>true</thumbnail>
-        <thumbnail_width>100</thumbnail_width>
-        <thumbnail_height>100</thumbnail_height>
+        <thumbnail_width>128</thumbnail_width>
+        <thumbnail_height>128</thumbnail_height>
     </general>
     <server>
         <!-- enabled the http basic access authentication -->
