@@ -8,6 +8,7 @@
 
 #include "CameraController.h"
 #include "Settings.h"
+#include "Helper.h"
 #include "Base64.h"
 #include <pthread.h>
 #include <sys/time.h>
@@ -50,14 +51,23 @@ void CameraController::release(){
 
 
 CameraController::CameraController(){
-    if(!this->_camera_found){        
+    this->init();
+}
+
+void CameraController::init(){
+    if(!this->_camera_found){
         this->_init_camera();
         Settings *s = Settings::getInstance();
         string val = "";
-        s->get_value("", val);
+        s->get_value("general.save_images", val);
         
-        this->_save_images = (bool)s;
-        if(this->_save_images)
+        if(val.compare("TRUE") == 0 || val.compare("true") == 0)
+            this->_save_images = true;
+        else
+            this->_save_images = false;
+        
+        
+        if(this->_save_images && this->_camera_found)
             this->_set_capturetarget(1);
     }
 }
@@ -128,6 +138,7 @@ int CameraController::capture(const char *filename, string &data){
         if (ret != GP_OK)
             return ret;
     }
+    
     
     int waittime = 10;
     CameraEventType type;
@@ -274,6 +285,8 @@ int CameraController::_get_files(ptree &tree, const char *path){
             this->_get_files(tree, abspath.c_str());
         }
     } else {
+        string show_thumbnials = Settings::get_value("general.thumbnail");
+        
         ret = gp_list_new(&files);
         if(ret < GP_OK)
             return ret;
@@ -286,12 +299,44 @@ int CameraController::_get_files(ptree &tree, const char *path){
         
         ptree current_folder, filelist;
         current_folder.put("absolute_path", path);
-        
+                
         for(int j = 0; j < count_files; j++){
             gp_list_get_name(files, j, &name);
             
             ptree valuechild;
-            valuechild.put_value(name);
+            valuechild.put("name", name);
+        
+            char *ext = strrchr(name, '.');
+            if(show_thumbnials.compare("true") == 0 && (strcmp(".jpg", ext) == 0 || strcmp(".jpeg", ext) == 0 || strcmp(".JPG", ext) == 0  )){
+                CameraFilePath cPath;
+                strcpy(cPath.folder, path);
+                strcpy(cPath.name, name);
+                
+                CameraFile *file;
+                ret = gp_file_new(&file);
+                
+                if (ret != GP_OK)
+                    continue;
+            
+                ret = gp_camera_file_get(this->_camera, cPath.folder, cPath.name, GP_FILE_TYPE_NORMAL, file, this->_ctx);
+            
+                if (ret != GP_OK)
+                    continue;
+                
+                unsigned long int file_size = 0;
+                const char *file_data = NULL;
+                
+                ret = gp_file_get_data_and_size (file, &file_data, &file_size);
+                if (ret != GP_OK)
+                    continue;
+
+                string thumb = "";
+                string thumb_widht = Settings::get_value("general.thumbnail_width");
+                string thumb_height = Settings::get_value("general.thumbnail_width");
+                Helper::resize_image_to_base64(atoi(thumb_widht.c_str()), atoi(thumb_widht.c_str()), file_data, file_size, thumb);
+                valuechild.put("thumbnail", thumb);
+            }
+            
             filelist.push_back(std::make_pair("", valuechild));
         }
         current_folder.put_child("files", filelist);        
@@ -346,7 +391,7 @@ int CameraController::get_settings_choices(const char *key, vector<string> &choi
     return true;
 }
 
-int CameraController::get_settings_value(const char *key, void *val){
+int CameraController::get_settings_value(const char *key, string &val){
     CameraWidget *w, *child;
     int ret;
     
@@ -359,9 +404,13 @@ int CameraController::get_settings_value(const char *key, void *val){
     if(ret < GP_OK)
         return ret;
     
-    ret = gp_widget_get_value(child, val);
+    void *item_value;
+    ret = gp_widget_get_value(child, &item_value);
     if(ret < GP_OK)
         return ret;
+    
+    unsigned char *value = static_cast<unsigned char *>(item_value);
+    val.append((char *)value);
     
     return true;
 }
@@ -533,13 +582,21 @@ int CameraController::_file_to_base64(CameraFile *file, string &output){
     const char *file_data = NULL;
     
 	ret = gp_file_get_data_and_size (file, &file_data, &file_size);
-    
     if (ret != GP_OK)
         return ret;
-    
     //char *dest = new char[file_size];
     char *dest = (char*)malloc(file_size * sizeof(char*));
     base64_encode(dest, (char*)file_data, (int)file_size);
+    output.append(dest);
+    free(dest);
+    
+    return true;
+}
+
+int CameraController::_file_to_base64(const char* data, unsigned int data_size, string &output){
+    //char *dest = new char[file_size];
+    char *dest = (char*)malloc(data_size * sizeof(char*));
+    base64_encode(dest, (char*)data, (int)data_size);
     output.append(dest);
     free(dest);
     

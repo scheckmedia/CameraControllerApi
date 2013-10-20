@@ -36,13 +36,14 @@ namespace CameraControllerApi {
         static CameraController* getInstance();
         static void release();
         
+        void init();
         int capture(const char *filename, string &data);
         int preview(const char **file_data);
         int liveview_start();
         int liveview_stop();
         int bulb(const char *filename, string &data);
         int get_settings(ptree &sett);
-        int get_settings_value(const char *key, void *val);
+        int get_settings_value(const char *key, string &val);
         int get_settings_choices(const char *key, std::vector<string> &choices);
         int set_settings_value(const char *key, const char *val);
         int get_files(ptree &tree);
@@ -68,6 +69,7 @@ namespace CameraControllerApi {
         void _get_item_value(CameraWidget *w, ptree &tree);
         void _set_capturetarget(int index);
         int _file_to_base64(CameraFile *file, string &output);
+        int _file_to_base64(const char *data, unsigned int data_size, string &output);
     };
 }
 
