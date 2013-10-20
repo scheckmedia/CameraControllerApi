@@ -41,3 +41,10 @@ bool Settings::get_value(string key, string &res){
     }
     return false;
 }
+
+string Settings::get_value(string key){
+    string res = "";
+    Settings *s = Settings::getInstance();
+    s->get_value(key, res);
+    return res;
+}
