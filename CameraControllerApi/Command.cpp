@@ -24,10 +24,12 @@ struct validate_data {
 Command::Command(Api *api){
     this->_api = api;
     set<string> params;
-    string param_camera_settings[] = {"list", "aperture", "speed", "iso", "whitebalance","focus_point","focus_mode"};
+    string param_camera[] = {"status", "initialize"};
+    string param_settings[] = {"list", "aperture", "speed", "iso", "whitebalance","focus_point","focus_mode", "by_key"};
     string param_execute[] = {"shot", "bulb", "time_lapse","autofocus", "manualfocus", "live"};
     string param_files[] = {"list", "get", "delete"};
-    _valid_commands["/settings"] = set<string>(param_camera_settings, param_camera_settings + 7);
+    _valid_commands["/camera"] = set<string>(param_camera, param_camera + 2);
+    _valid_commands["/settings"] = set<string>(param_settings, param_settings + 8);
     _valid_commands["/capture"] = set<string>(param_execute, param_execute + 6);
     _valid_commands["/fs"] = set<string>(param_files, param_files + 3);
 }
@@ -74,8 +76,13 @@ bool Command::_executeAPI(const string &url, string action, const map<string, st
         value = iterator->second;
         boost::trim(value);
     }
-    
-    if(url == "/settings"){
+    if(url == "/camera"){
+        if(action.compare("status") == 0){
+            ret = this->_api->status(type, response);
+        } else if(action.compare("initialize") == 0){
+            ret = this->_api->init(type, response);
+        }
+    } else if(url == "/settings"){
         if(action.compare("list") == 0){
             ret = this->_api->list_settings(type, response);
         } else if(action.compare("focus_point") == 0){
@@ -88,8 +95,9 @@ bool Command::_executeAPI(const string &url, string action, const map<string, st
             ret = this->_api->set_iso(value, type, response);
         } else if(action.compare("whitebalance") == 0){
             ret = this->_api->set_whitebalance(value, type, response);
+        } else if(action.compare("key") == 0){
+            ret = this->_api->get_settings_by_key(value, type, response);
         }
-        
     } else if(url == "/capture"){
         if(action.compare("shot") == 0){
            ret = this->_api->shot(type, response); 
@@ -102,8 +110,7 @@ bool Command::_executeAPI(const string &url, string action, const map<string, st
             ret = this->_api->autofocus(type, response);
         } else if(action.compare("bulb") == 0){
             ret = this->_api->bulb(type, response);
-        }
-        
+        }        
     } else if(url == "/fs"){
         if(action.compare("list") == 0){
             ret = this->_api->list_files(type, response);
