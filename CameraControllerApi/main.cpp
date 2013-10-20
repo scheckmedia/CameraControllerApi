@@ -32,6 +32,8 @@ int main(int argc, const char * argv[])
             srv = new Server(http_port);
             signal(SIGTERM, sighandler);
         }
+        
+        cfg->release();
     } catch (std::exception const &e) {
         std::cout<<"Error: " << e.what();
     }
