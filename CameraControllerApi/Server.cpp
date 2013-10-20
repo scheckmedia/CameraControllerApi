@@ -219,6 +219,7 @@ int Server::url_handler (void *cls,
             MHD_add_response_header(response, "Content-Type", "application/xml");
         }
         MHD_add_response_header(response, "Content-Disposition", "attachment;filename=\"cca.json\"");
+        MHD_add_response_header (response, "Access-Control-Allow-Origin", "*");
     }
     
     
