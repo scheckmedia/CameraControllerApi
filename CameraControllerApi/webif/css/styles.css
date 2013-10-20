@@ -1,0 +1,149 @@
+body {
+	background: url(../img/sos.png);
+	padding-top: 10px;	
+}
+
+select {
+	-webkit-appearance: none;
+	appearance: none !important;
+}
+
+.navbar {
+	margin-bottom: 0px;
+}
+.container {
+	position: relative;
+	padding: 5px;	
+}
+
+
+#content h1 {
+	padding: 10px;
+	display: block;
+	background: #fff;
+	opacity: 0.4;
+	font-size: 4em;
+	font-weight: bold;
+}
+
+#loader {
+	position: absolute;
+	top: 0;
+	left: 0;
+	background: rgba(0,0,0,0.9) url(../img/loader.gif) center center no-repeat;
+	width: 100%;
+	height: 100%;
+	z-index: 9999;
+}
+
+#status {
+	position: absolute;
+	z-index: 9999;
+	top: 60px;
+	left: 50%;
+	opacity: 0.9;
+	margin-left: -25%;
+	margin-top: 10px;	
+	width: 50%;
+	text-align: center;
+}
+
+.btn.btn-show-controlls {
+	position: absolute;	
+	display: none;
+	border: 3px dotted rgba(0,0,0,0.6);
+	background: none;
+	z-index: 10;
+	top: -50px;
+	font-size: 50px;
+	border-radius: 50px;
+	padding-top: 40px;
+	width: 100px;
+	height: 100px;
+	opacity: 0.5;
+	text-align: center;
+	left: 50%;
+	margin-left: -50px;
+}
+.btn.btn-ultra {	
+	border: 3px dotted rgba(0,0,0,0.6);
+	margin-top: 10%;
+	padding: 18px 27px;
+	font-size: 100px;
+	line-height: 1.33;
+	border-radius: 6px;
+	opacity: 0.8;
+	margin-right: 20px;
+}
+
+#content {	
+	position: relative;
+	overflow: hidden;
+	background: #fff;	
+	padding: 5px;	
+	min-height: 750px;
+}
+
+#settings-panel {	
+	position: absolute;
+	display: none;
+	bottom: -21px;
+	width: 100%;
+	left: 0%;	
+}
+
+#content.gallery {	
+	background: url(../img/debut_dark.png);
+}
+
+#images img {
+	cursor: pointer;
+	margin: 20px;
+	opacity: 0.3;
+}
+
+
+#images img:hover {	
+	opacity: 1;
+}
+
+.modal-dialog {
+  width: 95%;
+  height: 95%;  
+}
+
+.modal-content {
+  background: url(../img/debut_dark.png);	
+}
+
+#camanimage {
+	max-width: 90%;
+	max-height: 90%
+}
+
+.modal-footer {
+	text-align: center;
+}
+
+.image-container {
+	float: left;
+	width: 78%;
+}
+.sidebar {
+	float: right;
+	width: 20%;
+}
+
+.sidebar .slider {
+	width: 180px;
+}
+
+
+#result_image {
+	position: absolute;
+	z-index: 0;
+	top: 0px;
+	left: -5px;
+	max-height: 100%;
+	width: 101%;
+}
