@@ -8,6 +8,7 @@
 
 #include "Helper.h"
 #include "Base64.h"
+#include <stdlib.h>
 #include <FreeImage.h>
 
 using namespace CameraControllerApi;
