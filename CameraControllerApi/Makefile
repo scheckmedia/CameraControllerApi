@@ -1,7 +1,7 @@
 CC=g++ -g
 CFLAGS=-c -Wall
-LDFLAGS= -lboost_system -lgphoto2 -lmicrohttpd
-SOURCES=main.cpp Api.cpp Base64.cpp CameraController.cpp Command.cpp Server.cpp Settings.cpp
+LDFLAGS= -lboost_system -lgphoto2 -lmicrohttpd -lfreeimage
+SOURCES=main.cpp Api.cpp Base64.cpp CameraController.cpp Command.cpp Helper.cpp Server.cpp Settings.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=CameraControllerApi
 
