@@ -306,7 +306,7 @@ int CameraController::_get_files(ptree &tree, const char *path){
             ptree valuechild;
             valuechild.put("name", name);
         
-            char *ext = strrchr(name, '.');
+            const char *ext = strrchr(name, '.');
             if(show_thumbnials.compare("true") == 0 && (strcmp(".jpg", ext) == 0 || strcmp(".jpeg", ext) == 0 || strcmp(".JPG", ext) == 0  )){
                 CameraFilePath cPath;
                 strcpy(cPath.folder, path);
