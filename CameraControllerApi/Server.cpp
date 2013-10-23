@@ -160,7 +160,7 @@ int Server::url_handler (void *cls,
         struct stat buff;
         int fd;
         
-        char *file = strrchr(url, '/');
+        const char *file = strrchr(url, '/');
         if(strcmp(file, "/") == 0)url = "webif/index.html";
         
         string filepath = "./";
@@ -171,7 +171,7 @@ int Server::url_handler (void *cls,
             return Server::send_bad_response(connection);
         } 
         
-        char *ext = strrchr(url, '.');
+        const char *ext = strrchr(url, '.');
         const char *mime;
         if(strcmp(ext, ".js") == 0)
             mime = "text/javascript";
