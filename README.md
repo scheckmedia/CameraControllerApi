@@ -96,3 +96,4 @@ Each method will response with a file in json format. If you want a XML response
 + libboost 
 + libboost-system
 + libmicrohttpd
++ libfreeimage
