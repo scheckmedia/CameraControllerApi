@@ -56,7 +56,7 @@ namespace CameraControllerApi {
         bool _running_process;
         bool _camera_found;
         bool _is_initialized;
-        bool _save_images = true;
+        bool _save_images;
         
         CameraController();
         ~CameraController();
