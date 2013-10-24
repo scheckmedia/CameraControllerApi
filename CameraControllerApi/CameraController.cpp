@@ -299,7 +299,9 @@ int CameraController::_get_files(ptree &tree, const char *path){
         
         ptree current_folder, filelist;
         current_folder.put("absolute_path", path);
-                
+        string thumb_widht = Settings::get_value("general.thumbnail_width");
+        string thumb_height = Settings::get_value("general.thumbnail_width");
+        
         for(int j = 0; j < count_files; j++){
             gp_list_get_name(files, j, &name);
             
@@ -331,8 +333,6 @@ int CameraController::_get_files(ptree &tree, const char *path){
                     continue;
 
                 string thumb = "";
-                string thumb_widht = Settings::get_value("general.thumbnail_width");
-                string thumb_height = Settings::get_value("general.thumbnail_width");
                 Helper::resize_image_to_base64(atoi(thumb_widht.c_str()), atoi(thumb_widht.c_str()), file_data, file_size, thumb);
                 valuechild.put("thumbnail", thumb);
             }
