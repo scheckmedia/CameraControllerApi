@@ -96,8 +96,8 @@ window.Camera = Backbone.Model.extend({
 
     sendRequest : function(params, callback){    	
     	$.ajax({
-            //url: this.rootUrl + params,
-            url: "http://localhost:8888/" + params,
+            url: this.rootUrl + params,
+            //url: "http://localhost:8888/" + params,
             dataType : "json",            
             success:function(result){            	
                 callback(result);
