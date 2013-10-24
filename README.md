@@ -3,8 +3,12 @@ CameraControllerApi
 The CameraControlerApi is an attempt to control a DSLR via REST functionality. At the moment is it possible 
 to change the camera settings (ISO, aperture, time), shoot pictures and stream the live view of the camera.
 
+###Web-Interface###
 
-###demonstration###
+`http://device_ip:port/webif/`
+
+
+###Demonstration###
 
 [![a demonstration for the CameraControlerApi](http://img.youtube.com/vi/tkMP7_gnoiU/3.jpg)](http://www.youtube.com/watch?v=tkMP7_gnoiU)
 
