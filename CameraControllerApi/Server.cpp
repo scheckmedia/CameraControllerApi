@@ -11,6 +11,8 @@
 #include "Server.h"
 #include <map>
 #include <string>
+#include <limits.h>
+#include <unistd.h>
 #include "Command.h"
 
 using std::map;
@@ -22,6 +24,20 @@ using namespace CameraControllerApi;
 Server::Server(int port){
     this->_port = port;
     this->_shoulNotExit = 1;
+    
+    string auth = Settings::get_value("server.auth");
+    string webif = Settings::get_value("general.webif");
+    
+    
+    if(auth.compare("true") == 0)
+        this->_auth = true;
+    else
+        this->_auth = false;
+    
+    if(webif.compare("true") == 0)
+        this->_webif = true;
+    else
+        this->_webif = false;
     
     pthread_t tServer;
     if (0 != pthread_create(&tServer, NULL, Server::initial, this)) {
@@ -129,11 +145,10 @@ int Server::url_handler (void *cls,
         return MHD_YES;
     }
     
-    Settings *settings = Settings::getInstance();
+    Server s = *(Server *)cls;
     
-    string auth;    
-    settings->get_value("server.auth", auth);
-    if(auth.compare("true") == 0){
+    if(s._auth){
+        Settings *settings = Settings::getInstance();
         string username, password;
         settings->get_value("server.username", username);
         settings->get_value("server.password", password);
@@ -153,10 +168,9 @@ int Server::url_handler (void *cls,
     
     
     
-    string webif;
-    settings->get_value("general.webif", webif);
     
-    if(strcmp(url, "/webif") >= 0 && webif.compare("true") == 0){
+    
+    if(strcmp(url, "/webif") >= 0 && s._webif){
         struct stat buff;
         int fd;
         
@@ -165,6 +179,7 @@ int Server::url_handler (void *cls,
         
         string filepath = "./";
         filepath.append(url);
+        
         
         if ( (-1 == (fd = open (filepath.c_str(), O_RDONLY))) || (0 != fstat (fd, &buff))){
             if (fd != -1) close (fd);
@@ -186,12 +201,10 @@ int Server::url_handler (void *cls,
         else
             mime = "text/html";
         
-        
-        response = MHD_create_response_from_fd_at_offset (buff.st_size, fd, 0);
+        response = MHD_create_response_from_fd (buff.st_size, fd);
         MHD_add_response_header (response, "Content-Type", mime);
         
     } else {
-        Server s = *(Server *)cls;
         s.cmd->execute(url, url_args, respdata);
         
         *ptr = 0;

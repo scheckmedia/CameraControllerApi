@@ -45,6 +45,8 @@ namespace CameraControllerApi {
         
         int _port;
         int _shoulNotExit;
+        bool _webif;
+        bool _auth;
         
     };
 }
