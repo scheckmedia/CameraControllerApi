@@ -299,8 +299,10 @@ int CameraController::_get_files(ptree &tree, const char *path){
         
         ptree current_folder, filelist;
         current_folder.put("absolute_path", path);
+        
         string thumb_widht = Settings::get_value("general.thumbnail_width");
         string thumb_height = Settings::get_value("general.thumbnail_width");
+        bool show_thumb = (show_thumbnials.compare("true") == 0);
         
         for(int j = 0; j < count_files; j++){
             gp_list_get_name(files, j, &name);
@@ -309,10 +311,12 @@ int CameraController::_get_files(ptree &tree, const char *path){
             valuechild.put("name", name);
         
             const char *ext = strrchr(name, '.');
-            if(show_thumbnials.compare("true") == 0 && (strcmp(".jpg", ext) == 0 || strcmp(".jpeg", ext) == 0 || strcmp(".JPG", ext) == 0  )){
+            if(show_thumb && (strcmp(".jpg", ext) == 0 || strcmp(".jpeg", ext) == 0 || strcmp(".JPG", ext) == 0  )){
                 CameraFilePath cPath;
                 strcpy(cPath.folder, path);
                 strcpy(cPath.name, name);
+                
+                printf("start read file %s", name);
                 
                 CameraFile *file;
                 ret = gp_file_new(&file);
@@ -335,6 +339,10 @@ int CameraController::_get_files(ptree &tree, const char *path){
                 string thumb = "";
                 Helper::resize_image_to_base64(atoi(thumb_widht.c_str()), atoi(thumb_widht.c_str()), file_data, file_size, thumb);
                 valuechild.put("thumbnail", thumb);
+                
+                printf("end read file %s", name);
+                
+                gp_file_free(file);
             }
             
             filelist.push_back(std::make_pair("", valuechild));
