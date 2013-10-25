@@ -61,7 +61,10 @@ bool Api::get_settings_by_key(string key, CCA_API_OUTPUT_TYPE type, string &outp
     
     std::vector<string> choices;
     ret = this->_cc->get_settings_choices(key.c_str(), choices);
-        
+    
+    if(ret < GP_OK)
+        return ret;
+    
     settings.put("value", value);
     
     ptree choices_items;
