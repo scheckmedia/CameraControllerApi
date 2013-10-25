@@ -27,7 +27,7 @@ void Helper::_resize(int w, int h, const char *image_data, unsigned long data_si
     FIBITMAP *image = FreeImage_LoadFromMemory(fif, src);
     if(image){
         FIMEMORY *dest = FreeImage_OpenMemory();
-        FIBITMAP *thumbnail = FreeImage_Rescale(image, w, h, FILTER_BILINEAR);
+        FIBITMAP *thumbnail = FreeImage_Rescale(image, w, h, FILTER_BOX);
         if(thumbnail){
             FreeImage_SaveToMemory(fif, thumbnail, dest, JPEG_DEFAULT);
             
@@ -41,7 +41,7 @@ void Helper::_resize(int w, int h, const char *image_data, unsigned long data_si
             
             base64_encode(buffer, (char *)mem_buffer, (int)size_in_bytes);
             base.append(buffer);
-            free(buffer);
+            delete[] buffer;
             
         }
         FreeImage_Unload(thumbnail);
