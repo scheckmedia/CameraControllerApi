@@ -238,10 +238,6 @@ int CameraController::bulb(const char *filename, string &data){
     return true;
 }
 
-int CameraController::get_files(ptree &tree){
-    return this->_get_files(tree, "/");
-}
-
 int CameraController::get_file(const char *filename, const char *filepath, string &base64out){
     int ret;
     CameraFile *file;
@@ -256,6 +252,16 @@ int CameraController::get_file(const char *filename, const char *filepath, strin
     
     this->_file_to_base64(file, base64out);
     return true;
+}
+
+
+int CameraController::get_files(ptree &tree){
+    //long t0 = time(NULL);
+    int ret = this->_get_files(tree, "/");
+    //long t1= time(NULL);
+    
+    //printf ("\n\ntime = %ld secs\n", t1 - t0);
+    return ret;
 }
 
 int CameraController::_get_files(ptree &tree, const char *path){
@@ -300,9 +306,12 @@ int CameraController::_get_files(ptree &tree, const char *path){
         ptree current_folder, filelist;
         current_folder.put("absolute_path", path);
         
-        string thumb_widht = Settings::get_value("general.thumbnail_width");
-        string thumb_height = Settings::get_value("general.thumbnail_width");
+        int thumb_widht = atoi(Settings::get_value("general.thumbnail_width").c_str());
+        int thumb_height = atoi(Settings::get_value("general.thumbnail_width").c_str());
         bool show_thumb = (show_thumbnials.compare("true") == 0);
+        
+        unsigned long int file_size = 0;
+        const char *file_data = NULL;
         
         for(int j = 0; j < count_files; j++){
             gp_list_get_name(files, j, &name);
@@ -329,20 +338,21 @@ int CameraController::_get_files(ptree &tree, const char *path){
                 if (ret != GP_OK)
                     continue;
                 
-                unsigned long int file_size = 0;
-                const char *file_data = NULL;
+                
                 
                 ret = gp_file_get_data_and_size (file, &file_data, &file_size);
                 if (ret != GP_OK)
                     continue;
 
                 string thumb = "";
-                Helper::resize_image_to_base64(atoi(thumb_widht.c_str()), atoi(thumb_widht.c_str()), file_data, file_size, thumb);
+                Helper::resize_image_to_base64(thumb_widht, thumb_height, file_data, file_size, thumb);
                 valuechild.put("thumbnail", thumb);
                 
                 printf("end read file %s", name);
                 
                 gp_file_free(file);
+                file_size = 0;
+                file_data = NULL;
             }
             
             filelist.push_back(std::make_pair("", valuechild));
