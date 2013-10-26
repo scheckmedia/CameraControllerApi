@@ -96,10 +96,12 @@ select {
 	background: url(../img/debut_dark.png);
 }
 
-#images img {
+#images img, #images .img-thumbnail {
 	cursor: pointer;
 	margin: 20px;
 	opacity: 0.3;
+
+	min-height: 80px;	
 }
 
 
