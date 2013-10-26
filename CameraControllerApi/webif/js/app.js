@@ -351,16 +351,24 @@ window.GalleryView = Backbone.View.extend({
 		app.camera.getFileList(function(response){
 			var container = $('#images');
 			$.each(response.files, function(index, value){				
+				var img;
 				if(value.thumbnail){
-					var img = '<img src="data:image/jpg;base64,'+value.thumbnail+'" alt="'+value.name+'" class="img-thumbnail" data-path="'+response.absolute_path+'" data-name="'+value.name+'">';
-					container.append(img);
+					img = '<img src="data:image/jpg;base64,'+value.thumbnail+'" alt="'+value.name+'" class="img-thumbnail" data-path="'+response.absolute_path+'" data-name="'+value.name+'">';					
+				} else {
+					img = $('<span></span>').html(value.name).addClass("img-thumbnail");
+					img.attr({
+						'data-path' : response.absolute_path,
+						'data-name' : value.name
+					});
 				}
+
+				container.append(img);
 			});
 		});
 	},
 
 	events : {
-		'click img' : 'openImage',		
+		'click .img-thumbnail' : 'openImage',		
 	},
 
 	openImage : function(e){
