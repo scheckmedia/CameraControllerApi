@@ -22,6 +22,7 @@ void Helper::resize_image_to_base64(int square, const char *image_data, unsigned
 }
 
 void Helper::_resize(int w, int h, const char *image_data, unsigned long data_size, string &base){
+    FreeImage_Initialise();
     FIMEMORY *src = FreeImage_OpenMemory((BYTE *)image_data, (DWORD)data_size);
     FREE_IMAGE_FORMAT fif = FreeImage_GetFileTypeFromMemory(src);
     FIBITMAP *image = FreeImage_LoadFromMemory(fif, src);
@@ -49,4 +50,6 @@ void Helper::_resize(int w, int h, const char *image_data, unsigned long data_si
     }
     FreeImage_Unload(image);
     FreeImage_CloseMemory(src);
+    FreeImage_DeInitialise();
+    
 }
