@@ -1,5 +1,5 @@
-CC=g++ -g
-CFLAGS=-c -Wall -std=c++11
+CC=g++ -g -std=c++11
+CFLAGS=-c -Wall
 LDFLAGS= -lboost_system -lgphoto2 -lmicrohttpd -lexif
 SOURCES=main.cpp Api.cpp Base64.cpp CameraController.cpp Command.cpp Helper.cpp Server.cpp Settings.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
