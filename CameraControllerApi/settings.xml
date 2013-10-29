@@ -6,9 +6,7 @@
         <!-- if true, the images will saved on the sd card and not deleted -->
         <save_images>true</save_images>
         <!-- if enabled, you receive with the images on the filesystem an automatic generated thumbnail in the given size (horribly slow on RaspberryPI) -->
-        <thumbnail>false</thumbnail>
-        <thumbnail_width>128</thumbnail_width>
-        <thumbnail_height>128</thumbnail_height>
+        <thumbnail>true</thumbnail>
     </general>
     <server>
         <!-- enabled the http basic access authentication -->
