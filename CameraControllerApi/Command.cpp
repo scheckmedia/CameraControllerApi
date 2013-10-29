@@ -26,7 +26,7 @@ Command::Command(Api *api){
     set<string> params;
     string param_camera[] = {"status", "initialize"};
     string param_settings[] = {"list", "aperture", "speed", "iso", "whitebalance","focus_point","focus_mode", "by_key"};
-    string param_execute[] = {"shot", "bulb", "time_lapse","autofocus", "manualfocus", "live"};
+    string param_execute[] = {"shot", "bulb", "timelapse","autofocus", "manualfocus", "live"};
     string param_files[] = {"list", "get", "delete"};
     _valid_commands["/camera"] = set<string>(param_camera, param_camera + 2);
     _valid_commands["/settings"] = set<string>(param_settings, param_settings + 8);
@@ -67,15 +67,9 @@ int Command::execute(const string &url, const map<string, string> &argvals, stri
 
 bool Command::_executeAPI(const string &url, string action, const map<string, string> &urlparams, CCA_API_OUTPUT_TYPE type, string &response){
     bool ret = CCA_CMD_SUCCESS;
+    
+    string value = Command::find_url_param(urlparams, "value");
 
-    
-    string value;
-    map<string,string>::const_iterator iterator = urlparams.find("value");
-    
-    if(iterator != urlparams.end()){
-        value = iterator->second;
-        boost::trim(value);
-    }
     if(url == "/camera"){
         if(action.compare("status") == 0){
             ret = this->_api->status(type, response);
@@ -110,24 +104,48 @@ bool Command::_executeAPI(const string &url, string action, const map<string, st
             ret = this->_api->autofocus(type, response);
         } else if(action.compare("bulb") == 0){
             ret = this->_api->bulb(type, response);
-        }        
+        } else if(action.compare("timelapse") == 0){
+            string interval = Command::find_url_param(urlparams, "interval");
+            string start = Command::find_url_param(urlparams, "start");
+            string end = Command::find_url_param(urlparams, "end");
+            
+            if(interval.empty()||end.empty())
+                return false;
+
+            int seconds = std::stoi(interval);
+            time_t start_time, end_time;
+            
+            if(start.empty()) time(&start_time);
+            else start_time = std::stoi(start);
+            
+            end_time = std::stoi(end);
+            ret = this->_api->timelapse(seconds, start_time, end_time, type, response);
+            
+        }
     } else if(url == "/fs"){
         if(action.compare("list") == 0){
             ret = this->_api->list_files(type, response);
         } else if(action.compare("get") == 0){
-            map<string,string>::const_iterator iterator = urlparams.find("path");
-            string path;
-            
-            if(iterator != urlparams.end()){
-                path = iterator->second;
-                boost::trim(value);
+            string path = Command::find_url_param(urlparams, "path");
+            if(!path.empty())
                 ret = this->_api->get_file(value, path, type, response);
-            } else {
+            else
                 ret = false;
-            }
         }
     }
     return ret;
+}
+
+string Command::find_url_param(const map<string, string>&params, const char *keyword){
+    std::map<std::string, std::string>::const_iterator it = params.find(keyword);
+    if(it != params.end()){
+        string value;
+        value = it->second;
+        boost::trim(value);
+        return value;
+    }
+    
+    return "";
 }
 
 bool Command::_validate(const void *data){

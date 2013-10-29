@@ -29,6 +29,7 @@ namespace CameraControllerApi {
     public:
         Command(Api *api);
         int execute(const string& url, const map<string, string>& argvals, string& response);
+        static string find_url_param(const std::map<string, string>&map, const char *keyword);
     private:
         Api *_api;
         map<string, set<string> > _valid_commands;
