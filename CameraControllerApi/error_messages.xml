@@ -4,5 +4,7 @@
         <error id="0">No error message found</error>
         <error id="-1">Invalid Command</error>
         <error id="-2">Camera not found</error>
+        <error id="-3">Not enough url parameter</error>
+        <error id="-4">Camera is busy</error>
     </errors>
 </CCA>
