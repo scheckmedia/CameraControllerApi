@@ -17,11 +17,12 @@ using std::string;
 namespace CameraControllerApi {
     class Helper {
     public:
-        static void resize_image_to_base64(int w, int h, const char *image_data, unsigned long data_size, string &base);
-        static void resize_image_to_base64(int square, const char *image_data, unsigned long data_size, string &base);
+        //static void resize_image_to_base64(int w, int h, const char *image_data, unsigned long data_size, string &base);
+        //static void resize_image_to_base64(int square, const char *image_data, unsigned long data_size, string &base);
+        static void get_thumbnail_from_exif(const char *image_data, unsigned long data_size, string &base);
         
     private:
-        static void _resize(int w, int h, const char *image_data, unsigned long data_size, string &base);
+        //static void _resize(int w, int h, const char *image_data, unsigned long data_size, string &base);
     };
 }
 
