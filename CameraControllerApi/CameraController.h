@@ -25,7 +25,6 @@ namespace CameraControllerApi {
     
     class CameraController {    
         
-    static void* start_liveview_server(void *context);
     static GPContextErrorFunc _error_callback(GPContext *context, const char *text, void *data);
     static GPContextMessageFunc _message_callback(GPContext *context, const char *text, void *data);
         
@@ -37,6 +36,8 @@ namespace CameraControllerApi {
         static void release();
         
         void init();
+        bool is_busy();
+        void is_bussy(bool busy);
         int capture(const char *filename, string &data);
         int preview(const char **file_data);
         int liveview_start();
@@ -48,12 +49,16 @@ namespace CameraControllerApi {
         int set_settings_value(const char *key, const char *val);
         int get_files(ptree &tree);
         int get_file(const char *filename, const char *filepath, string &base64out);
+        
+        static void* start_liveview_server(void *context);
+        
                 
     private:
         static CameraController *_instance;        
         Camera *_camera;
         GPContext *_ctx;
-        bool _running_process;
+        bool _is_busy;
+        bool _liveview_running;
         bool _camera_found;
         bool _is_initialized;
         bool _save_images;
@@ -62,7 +67,7 @@ namespace CameraControllerApi {
         ~CameraController();
         
         void _init_camera();
-        int _wait_and_handle_event (long waittime, CameraEventType *type, int download);
+        int _wait_and_handle_event (useconds_t waittime, CameraEventType *type, int download);
         int _get_files(ptree &tree, const char *folder);
         void _build_settings_tree(CameraWidget *w);
         void _read_widget(CameraWidget *w, ptree &tree, string node);
