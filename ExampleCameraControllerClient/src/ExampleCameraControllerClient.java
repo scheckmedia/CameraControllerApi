@@ -1,19 +1,15 @@
 import java.awt.EventQueue;
 
 import javax.imageio.ImageIO;
-import javax.net.ssl.SSLEngineResult.Status;
-import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFrame;
 import javax.swing.JButton;
 import javax.swing.JTextPane;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import apple.laf.JRSUIUtils.ComboBox;
 import sun.misc.BASE64Decoder;
 
 import java.awt.event.MouseAdapter;
@@ -39,7 +35,6 @@ import java.awt.Graphics;
 import java.awt.Image;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.LayoutStyle.ComponentPlacement;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -49,7 +44,7 @@ import javax.swing.JComboBox;
 
 public class ExampleCameraControllerClient {
 	
-	static final String DEVICE_IP = "192.168.178.211:8888";
+	static final String DEVICE_IP = "192.168.178.210:8888";
 	
 	private JTextPane tbStatus;
 	private JFrame frame;
