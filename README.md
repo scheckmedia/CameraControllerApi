@@ -1,7 +1,7 @@
 CameraControllerApi
 ===================
 The CameraControlerApi is an attempt to control a DSLR via REST functionality. At the moment is it possible 
-to change the camera settings (ISO, aperture, time), shoot pictures and stream the live view of the camera.
+to change the camera settings (ISO, aperture, time), take pictures and stream the live view of the camera (only tested with a Nikon D90).
 
 ###Web-Interface###
 
@@ -15,7 +15,7 @@ to change the camera settings (ISO, aperture, time), shoot pictures and stream t
 
 How to use
 -----------
-You will get all valid data for a command from the "List" action. 
+You will get all valid data for a command from the "list" action.
 
 ###Settings###
 
@@ -67,7 +67,7 @@ You will get all valid data for a command from the "List" action.
 
 `http://device_ip:port/capture?action=live&value=start`
 
-<small>Returns a file with connection data. The command will open a socket with which you can connect to get the stream data.</small>
+<small>Returns a file with connection data. The command will open a socket which allows you to connect to get the stream data.</small>
 
 
 
@@ -92,7 +92,7 @@ You will get all valid data for a command from the "List" action.
 
 
 
-Each method will response with a file in json format. If you want a XML response you have to put the command "&amp;type=xml" on the end of the upper commands
+Each method will response with a JSON file. If you want a XML response you have to put the command "&amp;type=xml" on the end of the upper commands
 
 
 ##Dependencies##
@@ -100,4 +100,4 @@ Each method will response with a file in json format. If you want a XML response
 + libboost 
 + libboost-system
 + libmicrohttpd
-+ libfreeimage
++ libexif
