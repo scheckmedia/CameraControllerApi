@@ -14,8 +14,10 @@
 #include <limits.h>
 #include <unistd.h>
 #include "Command.h"
+#include <regex>
 
 using std::map;
+using std::regex;
 using std::string;
 using namespace CameraControllerApi;
 
@@ -166,11 +168,13 @@ int Server::url_handler (void *cls,
         return Server::send_bad_response(connection);
     }
     
+   
+    //TODO: implement releative path for webif url
+    /*std::regex rx("(/webif/$)|(/webif$)");
+    bool match = std::regex_match(url, rx);*/
     
     
-    
-    
-    if(strcmp(url, "/webif") >= 0 && s._webif){
+    if(strcmp(url, "/webif/") >= 0 && s._webif){
         struct stat buff;
         int fd;
         
@@ -187,6 +191,7 @@ int Server::url_handler (void *cls,
         } 
         
         const char *ext = strrchr(url, '.');
+        
         const char *mime;
         if(strcmp(ext, ".js") == 0)
             mime = "text/javascript";
@@ -226,12 +231,14 @@ int Server::url_handler (void *cls,
             type = typexml;
         }
         
-        if(type == typejson)
+        if(type == typejson){
             MHD_add_response_header(response, "Content-Type", "application/json");
-        else {
+            MHD_add_response_header(response, "Content-Disposition", "attachment;filename=\"cca.json\"");
+        } else {
             MHD_add_response_header(response, "Content-Type", "application/xml");
+            MHD_add_response_header(response, "Content-Disposition", "attachment;filename=\"cca.xml\"");
         }
-        MHD_add_response_header(response, "Content-Disposition", "attachment;filename=\"cca.json\"");
+
         MHD_add_response_header (response, "Access-Control-Allow-Origin", "*");
     }
     

@@ -5,7 +5,7 @@
         <webif>true</webif>
         <!-- if true, the images will saved on the sd card and not deleted -->
         <save_images>true</save_images>
-        <!-- if enabled, you receive with the images on the filesystem an automatic generated thumbnail in the given size (horribly slow on RaspberryPI) -->
+        <!-- if enabled, you receive with the images on the filesystem an automatic generated thumbnail in the given size -->
         <thumbnail>true</thumbnail>
     </general>
     <server>

@@ -14,7 +14,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-#define CCA_SETTINGS_FILE "settings.xml"
+#define CCA_SETTINGS_FILE "./settings.xml"
 
 namespace CameraControllerApi {
     using std::string;

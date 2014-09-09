@@ -19,7 +19,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-#define CCA_ERROR_MESSAGE_FILE "error_messages.xml"
+#define CCA_ERROR_MESSAGE_FILE "./error_messages.xml"
 
 namespace CameraControllerApi {
     
