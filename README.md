@@ -97,10 +97,10 @@ Each method will response with a JSON file. If you want a XML response you have 
 
 
 ##Dependencies##
-+ libgphoto2-2.5.2
+```apt-get install libboost-dev libboost-system-dev libmicrohttpd-dev libghoto2-dev libexif-dev```
+
++ libgphoto
 + libboost 
 + libboost-system
 + libmicrohttpd
 + libexif
-+ 
-```apt-get install libboost-dev libboost-system-dev libmicrohttpd-dev libghoto2-dev libexif-dev```
