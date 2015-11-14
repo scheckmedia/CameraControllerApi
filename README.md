@@ -95,9 +95,12 @@ You will get all valid data for a command from the "list" action.
 Each method will response with a JSON file. If you want a XML response you have to put the command "&amp;type=xml" on the end of the upper commands
 
 
+
 ##Dependencies##
 + libgphoto2-2.5.2
 + libboost 
 + libboost-system
 + libmicrohttpd
 + libexif
++ 
+```apt-get install libboost-dev libboost-system-dev libmicrohttpd-dev libghoto2-dev libexif-dev```
