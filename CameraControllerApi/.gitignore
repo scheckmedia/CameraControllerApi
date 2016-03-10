@@ -34,3 +34,7 @@ Thumbs.db
 
 image.jpg
 bin
+
+.cproject
+.project
+.settings/

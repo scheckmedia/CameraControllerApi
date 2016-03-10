@@ -25,9 +25,8 @@ int main(int argc, const char * argv[])
     try {
         string port;
         Settings *cfg = Settings::getInstance();
-        std::string path = boost::filesystem::current_path().string();
         std::string sub(argv[0]);
-        cfg->base_path(path + "/" + sub.substr(0, sub.find_last_of("/")));
+        cfg->base_path(sub.substr(0, sub.find_last_of("/")));
         bool ret = cfg->get_value("server.port", port);
 
         std::cout << "CameraControllerApi listening port " << port << std::endl;
