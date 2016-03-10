@@ -14,13 +14,13 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-#define CCA_SETTINGS_FILE "./settings.xml"
+#define CCA_SETTINGS_FILE "settings.xml"
 
 namespace CameraControllerApi {
     using std::string;
     using boost::property_tree::ptree;
     using boost::property_tree::basic_ptree;
-    
+
     class Settings {
         static Settings *_instance;
     public:
@@ -28,13 +28,17 @@ namespace CameraControllerApi {
         static string get_value(string key);
         static void release();
         bool get_value(string key, string &res);
-        
+        void base_path(string path);
+        string get_base_path();
+
     private:
         Settings();
         ~Settings(){};
+        void _init();
+        bool _initialized;
         string _base_path;
-        ptree _pt;        
-        
+        ptree _pt;
+
     };
 }
 

@@ -19,52 +19,52 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-#define CCA_ERROR_MESSAGE_FILE "./error_messages.xml"
+#define CCA_ERROR_MESSAGE_FILE "error_messages.xml"
 
 namespace CameraControllerApi {
-    
+
     using std::map;
     using std::string;
     using boost::property_tree::ptree;
     using boost::property_tree::basic_ptree;
-    
+
     typedef enum {
         CCA_API_LIVEVIEW_START,
         CCA_API_LIVEVIEW_STOP
     } CCA_API_LIVEVIEW_MODES;
-    
+
     typedef enum {
         CCA_API_RESPONSE_SUCCESS = 1,
         CCA_API_RESPONSE_INVALID = -1,
         CCA_API_RESPONSE_CAMERA_NOT_FOUND = -2,
         CCA_API_RESPONSE_CAMERA_BUSY = -3,
     } CCA_API_RESPONSE;
-    
+
     typedef enum {
         CCA_OUTPUT_TYPE_XML,
         CCA_OUTPUT_TYPE_JSON
     } CCA_API_OUTPUT_TYPE;
-    
+
     /**
      @class Api
      @\brief responsible for the interaction between a command and the camera
      */
     class Api {
     private:
-        
+
         /**
          @brief CameraControler Instance
          */
         CameraController *_cc;
-        
+
         /**
-         @brief creates a "camera not found" method    
+         @brief creates a "camera not found" method
          @param[in]     resp
          @param[in]     CCA_API_OUTPUT_TYPE
          @param[out]    output
          */
         bool _buildCameraNotFound(CCA_API_RESPONSE resp, CCA_API_OUTPUT_TYPE type, string &output);
-        
+
         /**
          @brief sets a value in camera config
          @param[in]     key - config value key
@@ -94,7 +94,7 @@ namespace CameraControllerApi {
         bool bulb(CCA_API_OUTPUT_TYPE type, string &output);
         bool timelapse(int interval, time_t start, time_t end, CCA_API_OUTPUT_TYPE type, string &output);
         bool burst(int number_of_images, CCA_API_OUTPUT_TYPE type, string &output);
-        bool liveview(CCA_API_LIVEVIEW_MODES mode, CCA_API_OUTPUT_TYPE type, string &output);        
+        bool liveview(CCA_API_LIVEVIEW_MODES mode, CCA_API_OUTPUT_TYPE type, string &output);
     };
 }
 

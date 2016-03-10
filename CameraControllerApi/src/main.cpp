@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include "Settings.h"
 #include "Server.h"
+#include <boost/filesystem.hpp>
 using namespace CameraControllerApi;
 Server *srv;
 
@@ -21,24 +22,28 @@ void sighandler(int sig){
 
 int main(int argc, const char * argv[])
 {
-
     try {
         string port;
         Settings *cfg = Settings::getInstance();
+        std::string path = boost::filesystem::current_path().string();
+        std::string sub(argv[0]);
+        cfg->base_path(path + "/" + sub.substr(0, sub.find_last_of("/")));
         bool ret = cfg->get_value("server.port", port);
-        
+
+        std::cout << "CameraControllerApi listening port " << port << std::endl;
+
         if(ret){
             int http_port = atoi(port.c_str());
             srv = new Server(http_port);
             signal(SIGTERM, sighandler);
         }
-        
+
         cfg->release();
     } catch (std::exception const &e) {
         std::cout<<"Error: " << e.what();
     }
-    
-    
+
+
     return 0;
 }
 

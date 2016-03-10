@@ -20,10 +20,10 @@ bool Api::status(CCA_API_OUTPUT_TYPE type, string &output){
     if(this->_check(type, output)){
         ptree settings;
         Api::buildResponse(settings, type, CCA_API_RESPONSE_SUCCESS, output);
-        
+
         return true;
     }
-    
+
     return false;
 }
 
@@ -44,7 +44,7 @@ bool Api::list_settings(CCA_API_OUTPUT_TYPE type, string &output){
         Api::buildResponse(settings, type, CCA_API_RESPONSE_SUCCESS, output);
         return true;
     }
-    
+
     return false;
 }
 
@@ -54,31 +54,31 @@ bool Api::get_settings_by_key(string key, CCA_API_OUTPUT_TYPE type, string &outp
         string value;
         int ret;
         ret = this->_cc->get_settings_value(key.c_str(), value);
-        
+
         if(ret < GP_OK)
             return ret;
-        
+
         std::vector<string> choices;
         ret = this->_cc->get_settings_choices(key.c_str(), choices);
-        
+
         if(ret < GP_OK)
             return ret;
-        
+
         settings.put("value", value);
-        
+
         ptree choices_items;
         for(int i = 0; i < choices.size(); i++){
             ptree choice_value;
             string choice = choices.at(i);
-            
+
             choice_value.put_value(choice);
-            choices_items.push_back(std::make_pair("", choice_value));        
+            choices_items.push_back(std::make_pair("", choice_value));
         }
         settings.put_child("choices", choices_items);
         Api::buildResponse(settings, type, CCA_API_RESPONSE_SUCCESS, output);
         return true;
     }
-    
+
     return false;
 }
 
@@ -86,15 +86,15 @@ bool Api::list_files(CCA_API_OUTPUT_TYPE type, string &output){
     if(this->_check(type, output)){
         ptree settings;
         int ret = this->_cc->get_files(settings);
-        
+
         if(ret)
             Api::buildResponse(settings, type, CCA_API_RESPONSE_SUCCESS, output);
         else
             Api::buildResponse(settings, type, CCA_API_RESPONSE_INVALID, output);
-        
+
         return true;
     }
-    
+
     return false;
 }
 
@@ -103,16 +103,16 @@ bool Api::get_file(string file, string path, CCA_API_OUTPUT_TYPE type, string &o
         ptree tree;
         string image;
         int ret = this->_cc->get_file(file.c_str(), path.c_str(), image);
-        
-        if(ret){        
+
+        if(ret){
             tree.put("image", image);
             Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
-            
+
         } else {
             Api::buildResponse(tree, type, CCA_API_RESPONSE_INVALID, output);
         }
-        
-        return ret;    
+
+        return ret;
     }
     return false;
 }
@@ -160,11 +160,11 @@ bool Api::shot(CCA_API_OUTPUT_TYPE type, string &output){
         if(ret){
             tree.put("image", image);
             Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
-            
+
         } else {
             Api::buildResponse(tree, type, CCA_API_RESPONSE_INVALID, output);
         }
-        
+
         return true;
     }
     return false;
@@ -175,19 +175,19 @@ bool Api::timelapse(int interval, time_t start, time_t end, CCA_API_OUTPUT_TYPE 
         ptree tree;
         time_t now;
         time(&now);
-        
+
         int ret;
         float shutterspeed;
-        
+
         string val;
         ret = this->_cc->get_settings_value("shutterspeed", val);
-        
+
         if(ret < GP_OK)
             return false;
-        
+
         time_t diff = end - start;
         shutterspeed = std::stof(val);
-        
+
         //buffer for exposure and image process time
         if (interval >= shutterspeed * 2 && (start + 1000) > now && diff > 0) {
             //delay
@@ -196,21 +196,22 @@ bool Api::timelapse(int interval, time_t start, time_t end, CCA_API_OUTPUT_TYPE 
                 time(&now);
                 usleep(100);
             }
-            
+
             time_t timer = 0;
             time_t idiff = 0;
             time_t active = 0;
             while(this->_cc->is_busy() && diff > 0){
-                
+
                 if(idiff <= 0){
                     printf("shot at : %ld\n", diff);
-                    if(this->shot(type, output) < GP_OK)
+                    ret = this->shot(type, output);
+                    if(static_cast<int>(ret) < GP_OK)
                         break;
-                    
+
                     time(&timer);
                     timer += interval;
                 }
-                
+
                 usleep(100);
                 time(&active);
                 diff  = end - active;
@@ -238,12 +239,12 @@ bool Api::liveview(CCA_API_LIVEVIEW_MODES mode, CCA_API_OUTPUT_TYPE type, string
                 Settings *sett = Settings::getInstance();
                 sett->get_value("preview.remote_port", port);
                 sett->get_value("preview.host", address);
-                
+
                 tree.put("port", port);
                 tree.put("ip_address", address);
-                
+
                 Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
-                
+
             } else {
                 Api::buildResponse(tree, type, CCA_API_RESPONSE_INVALID, output);
             }
@@ -252,7 +253,7 @@ bool Api::liveview(CCA_API_LIVEVIEW_MODES mode, CCA_API_OUTPUT_TYPE type, string
             if(ret){
                 tree.put("stop", "success");
                 Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
-                
+
             } else {
                 Api::buildResponse(tree, type, CCA_API_RESPONSE_INVALID, output);
             }
@@ -275,9 +276,9 @@ bool Api::burst(int number_of_images, CCA_API_OUTPUT_TYPE type, string &output){
         ptree tree, images;
         string base64image;
         char filename[256];
-        
+
         for(int i = 0; i < number_of_images; i++){
-         
+
             snprintf(filename, 256, "shot-%04d.jpg", i);
             if(ret){
                 ptree image;
@@ -306,18 +307,18 @@ bool Api::autofocus(CCA_API_OUTPUT_TYPE type, string &output){
             value = boost::lexical_cast<string>(val);
         }*/
         this->_set_settings_value("autofocusdrive", value, type, output);
-        return true;    
+        return true;
     }
     return false;
 }
 
-bool Api::_buildCameraNotFound(CCA_API_RESPONSE resp, CCA_API_OUTPUT_TYPE type, string &output){    
+bool Api::_buildCameraNotFound(CCA_API_RESPONSE resp, CCA_API_OUTPUT_TYPE type, string &output){
     ptree n;
     Api::buildResponse(n, type, resp, output);
     return false;
 }
 
-void Api::buildResponse(ptree data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE resp, string &output){    
+void Api::buildResponse(ptree data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE resp, string &output){
     try{
         boost::property_tree::ptree root;
         std::stringstream ss;
@@ -326,19 +327,19 @@ void Api::buildResponse(ptree data, CCA_API_OUTPUT_TYPE type, CCA_API_RESPONSE r
             string message;
             Api::errorMessage(resp, message);
             root.put("cca_response.message", message);
-        } else {                        
+        } else {
             root.put("cca_response.state", "success");
             string message;
             if(data.empty() == false)
                 root.add_child("cca_response.data", data);
         }
-        
+
         if(type == CCA_OUTPUT_TYPE_JSON){
             boost::property_tree::write_json(ss, root);
         } else if(type == CCA_OUTPUT_TYPE_XML){
             boost::property_tree::write_xml(ss, root);
         }
-        
+
         output = ss.str();
     } catch(std::exception &e){
         std::cout<<"Error: " << e.what();
@@ -352,7 +353,7 @@ bool Api::_set_settings_value(string key, string value, CCA_API_OUTPUT_TYPE type
         Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
     else
         Api::buildResponse(tree, type, CCA_API_RESPONSE_INVALID, output);
-    
+
     return ret;
 }
 
@@ -370,10 +371,11 @@ bool Api::_check(CCA_API_OUTPUT_TYPE type, string &output){
 void Api::errorMessage(CCA_API_RESPONSE errnr, string &message){
     try {
         boost::property_tree::ptree pt;
-        boost::property_tree::read_xml(CCA_ERROR_MESSAGE_FILE, pt);
+        Settings *s = Settings::getInstance();
+        boost::property_tree::read_xml( s->get_base_path() + "/" + CCA_ERROR_MESSAGE_FILE, pt);
         std::ostringstream errorstr;
         errorstr << errnr;
-        
+
         string error_id = errorstr.str();
 
         BOOST_FOREACH(boost::property_tree::ptree::value_type &v, pt.get_child("CCA.errors")){
