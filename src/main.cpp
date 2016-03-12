@@ -33,7 +33,8 @@ int main(int argc, const char * argv[])
 
         if(ret){
             int http_port = atoi(port.c_str());
-            srv = new Server(http_port);
+            srv = Server::getInstance();
+            srv->run(http_port);
             signal(SIGTERM, sighandler);
         }
 

@@ -26,11 +26,11 @@ Command::Command(Api *api){
     set<string> params;
     string param_camera[] = {"status", "initialize"};
     string param_settings[] = {"list", "aperture", "speed", "iso", "whitebalance","focus_point","focus_mode", "by_key"};
-    string param_execute[] = {"shot", "bulb", "timelapse","autofocus", "manualfocus", "live"};
+    string param_execute[] = {"shot", "bulb", "timelapse","autofocus", "manualfocus"};
     string param_files[] = {"list", "get", "delete"};
     _valid_commands["/camera"] = set<string>(param_camera, param_camera + 2);
     _valid_commands["/settings"] = set<string>(param_settings, param_settings + 8);
-    _valid_commands["/capture"] = set<string>(param_execute, param_execute + 6);
+    _valid_commands["/capture"] = set<string>(param_execute, param_execute + 5);
     _valid_commands["/fs"] = set<string>(param_files, param_files + 3);
 }
 
@@ -95,11 +95,6 @@ bool Command::_executeAPI(const string &url, string action, const map<string, st
     } else if(url == "/capture"){
         if(action.compare("shot") == 0){
            ret = this->_api->shot(type, response); 
-        } else if(action.compare("live") == 0){
-            if(value.compare("start") == 0)
-                ret = this->_api->liveview(CCA_API_LIVEVIEW_START, type, response);
-            else
-                ret = this->_api->liveview(CCA_API_LIVEVIEW_STOP, type, response);
         } else if(action.compare("autofocus") == 0){
             ret = this->_api->autofocus(type, response);
         } else if(action.compare("bulb") == 0){

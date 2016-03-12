@@ -50,11 +50,18 @@ void CameraController::release(){
 }
 
 
-CameraController::CameraController(){
+CameraController::CameraController() :
+		_camera_found(false), _is_busy(false), _is_initialized(false),
+		_liveview_running(false), _camera(NULL), _ctx(NULL), _save_images(true)
+{
     this->init();
 }
 
 void CameraController::init(){
+    #ifdef __APPLE__
+        system("killall -9 PTPCamera");
+    #endif
+    
     if(!this->_camera_found){
         this->_init_camera();
         Settings *s = Settings::getInstance();
@@ -180,6 +187,9 @@ int CameraController::capture(const char *filename, string &data){
 }
 
 int CameraController::preview(const char **file_data){
+	if(this->_camera_found == false)
+		return GP_ERROR;
+
     this->_is_busy = true;
     int ret;
     CameraFile *file;
@@ -197,29 +207,20 @@ int CameraController::preview(const char **file_data){
     }
 
     unsigned long int file_size = 0;
-	ret = gp_file_get_data_and_size(file, file_data, &file_size);
+    const char *data;
+	ret = gp_file_get_data_and_size(file, &data, &file_size);
 
     if(ret != GP_OK){
         this->_is_busy = false;
         return ret;
     }
 
+    *file_data = new char[file_size];
+    memcpy((void *)*file_data, data, file_size);
+
     // FIXME: not working...
-    //gp_file_unref(file);
-    return (int)file_size;
-}
-
-int CameraController::liveview_stop(){
-    this->_liveview_running = false;
-    return true;
-}
-
-int CameraController::liveview_start(){
-    pthread_t tLiveServer;
-    if (0 != pthread_create(&tLiveServer, NULL, CameraController::start_liveview_server, this)) {
-        return false;
-    }
-    return true;
+    gp_file_unref(file);
+    return static_cast<int>(file_size);
 }
 
 int CameraController::bulb(const char *filename, string &data){
@@ -677,54 +678,6 @@ int CameraController::_file_to_base64(const char* data, unsigned int data_size, 
     free(dest);
 
     return true;
-}
-
-void* CameraController::start_liveview_server(void *context){
-    CameraController *cc = (CameraController *)context;
-    cc->_liveview_running = true;
-
-    string port;
-    string host;
-    Settings *sett = Settings::getInstance();
-    sett->get_value("preview.host", host);
-    sett->get_value("preview.remote_port", port);
-
-    io_service io_s;
-    ip::address_v4 target;
-
-    target.from_string(host);
-
-    ip::tcp::endpoint endpoint(ip::tcp::v4(), atoi(port.c_str()));
-    endpoint.address(target);
-
-    ip::tcp::acceptor acceptor(io_s, endpoint);
-    ip::tcp::socket sock(io_s);
-
-    try{
-        acceptor.accept(sock);
-        while(cc->_liveview_running){
-            const char *data = NULL;
-            int size = cc->preview(&data);
-
-            if(size == 0) continue;
-            else if(size < 0)break;
-
-            printf("--------------------------------------\n");
-            printf("\n%d\n", size);
-            printf("--------------------------------------\n");
-
-            write(sock, buffer(&size, 4));
-            write(sock, buffer(data, size));
-        }
-    } catch(std::exception& e){
-        printf("error %s:",e.what());
-        cc->_liveview_running = false;
-    }
-
-    sock.close();
-    gp_camera_exit(cc->_camera, cc->_ctx);
-
-    return NULL;
 }
 
 GPContextErrorFunc CameraController::_error_callback(GPContext *context, const char *text, void *data){

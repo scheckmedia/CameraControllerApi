@@ -26,38 +26,53 @@ using namespace CameraControllerApi;
 
 #define PAGE "<html><head><title>Error</title></head><body></body></html>"
 
-Server::Server(int port){
-    this->_port = port;
-    this->_shoulNotExit = 1;
+Server* Server::_instance = NULL;
 
-    string auth = Settings::get_value("server.auth");
-    string webif = Settings::get_value("general.webif");
+Server::Server()
+{
+    this->_live_stream = new std::stringstream(std::ios::app | std::ios::in | std::ios::out);
+}
 
-
-    if(auth.compare("true") == 0)
-        this->_auth = true;
-    else
-        this->_auth = false;
-
-    if(webif.compare("true") == 0)
-        this->_webif = true;
-    else
-        this->_webif = false;
-
-    pthread_t tServer;
-    if (0 != pthread_create(&tServer, NULL, Server::initial, this)) {
-        exit(0);
+Server* Server::getInstance(){
+    if(_instance == NULL){
+        _instance = new Server();
     }
 
-    pthread_join(tServer, NULL);
+    return _instance;
+}
+
+void Server::run(int port) {
+	this->_port = port;
+	this->_shoulNotExit = 1;
+
+	string auth = Settings::get_value("server.auth");
+	string webif = Settings::get_value("general.webif");
+
+
+	if(auth.compare("true") == 0)
+		this->_auth = true;
+	else
+		this->_auth = false;
+
+	if(webif.compare("true") == 0)
+		this->_webif = true;
+	else
+		this->_webif = false;
+
+	pthread_t tServer;
+	if (0 != pthread_create(&tServer, NULL, Server::initial, this)) {
+		exit(0);
+	}
+
+	pthread_join(tServer, NULL);
 }
 
 void *Server::initial(void *context){
     Server *s = (Server *)context;
-    CameraController *cc = CameraController::getInstance();
+    s->cc = CameraController::getInstance();
 
-    if(cc->is_initialized()){
-        s->api = new Api(cc);
+    if(s->cc->is_initialized()){
+        s->api = new Api(s->cc);
         s->cmd = new Command(s->api);
         s->http();
     }
@@ -128,15 +143,10 @@ int Server::url_handler (void *cls,
     printf("connection received %s", method);
     int ret;
     map<string, string> url_args;
-    map<string, string>::iterator  it;
-
     string respdata;
 
     static int aptr;
-    char *me;
-    const char *typexml = "xml";
-    const char *typejson = "json";
-    const char *type = typejson;
+
 
 
     struct MHD_Response *response;
@@ -178,71 +188,14 @@ int Server::url_handler (void *cls,
 
 
     if(strcmp(url, "/webif/") >= 0 && s._webif){
-        struct stat buff;
-        int fd;
-
-        const char *file = strrchr(url, '/');
-        if(strcmp(file, "/") == 0)url = "webif/index.html";
-
-        string filepath = "./";
-        filepath.append(url);
-
-
-        if ( (-1 == (fd = open (filepath.c_str(), O_RDONLY))) || (0 != fstat (fd, &buff))){
-            if (fd != -1) close (fd);
-            return Server::send_bad_response(connection);
-        }
-
-        const char *ext = strrchr(url, '.');
-
-        const char *mime;
-        if(strcmp(ext, ".js") == 0)
-            mime = "text/javascript";
-        else if(strcmp(ext, ".css") == 0)
-            mime = "text/css";
-        else if(strcmp(ext, ".jpg") == 0 || strcmp(ext, ".jpeg") == 0 || strcmp(ext, ".jpe") == 0)
-            mime = "image/jpeg";
-        else if(strcmp(ext, ".gif") == 0)
-            mime = "image/gif";
-        else if(strcmp(ext, ".png") == 0)
-            mime = "image/png";
-        else
-            mime = "text/html";
-
-        response = MHD_create_response_from_fd (buff.st_size, fd);
-        MHD_add_response_header (response, "Content-Type", mime);
-
+    	response = handle_webif(cls, connection, url);
+    } else if(strcmp(url, "/liveview") >= 0) {
+    	response = MHD_create_response_from_callback (MHD_SIZE_UNKNOWN,
+                                                      512 * 1024,
+                                                      Server::handle_mjpeg, cls, Server::free_mjpeg);
+        MHD_add_response_header(response, "Content-Type", "multipart/x-mixed-replace;boundary=CCA_LV_FRAME");
     } else {
-        s.cmd->execute(url, url_args, respdata);
-
-        *ptr = 0;
-        me = (char *)malloc(respdata.size() + 1);
-        if(me == 0)
-            return MHD_NO;
-
-        strncpy(me, respdata.c_str(), respdata.size() + 1);
-
-        response = MHD_create_response_from_buffer(strlen(me), (void *)me, MHD_RESPMEM_MUST_COPY);
-
-        if(response == 0){
-            free(me);
-            return MHD_NO;
-        }
-
-        it = url_args.find("type");
-        if (it != url_args.end() && strcasecmp(it->second.c_str(), "xml")) {
-            type = typexml;
-        }
-
-        if(type == typejson){
-            MHD_add_response_header(response, "Content-Type", "application/json");
-            MHD_add_response_header(response, "Content-Disposition", "attachment;filename=\"cca.json\"");
-        } else {
-            MHD_add_response_header(response, "Content-Type", "application/xml");
-            MHD_add_response_header(response, "Content-Disposition", "attachment;filename=\"cca.xml\"");
-        }
-
-        MHD_add_response_header (response, "Access-Control-Allow-Origin", "*");
+    	response = handle_api(cls, url, url_args, respdata, ptr);
     }
 
 
@@ -251,12 +204,129 @@ int Server::url_handler (void *cls,
     return ret;
 }
 
-void *Server::http(){
+MHD_Response* Server::handle_webif(void *cls,
+						struct MHD_Connection *connection,
+						const char *url) {
+       struct stat buff;
+       int fd;
+       MHD_Response *response;
+       const char *file = strrchr(url, '/');
+       if(strcmp(file, "/") == 0)url = "webif/index.html";
+
+       string filepath = "./";
+       filepath.append(url);
+
+
+       if ( (-1 == (fd = open (filepath.c_str(), O_RDONLY))) || (0 != fstat (fd, &buff))){
+               if (fd != -1) close (fd);
+               Server::send_bad_response(connection);
+               return NULL;
+       }
+
+       const char *ext = strrchr(url, '.');
+
+       const char *mime;
+       if(strcmp(ext, ".js") == 0)
+               mime = "text/javascript";
+       else if(strcmp(ext, ".css") == 0)
+               mime = "text/css";
+       else if(strcmp(ext, ".jpg") == 0 || strcmp(ext, ".jpeg") == 0 || strcmp(ext, ".jpe") == 0)
+               mime = "image/jpeg";
+       else if(strcmp(ext, ".gif") == 0)
+               mime = "image/gif";
+       else if(strcmp(ext, ".png") == 0)
+               mime = "image/png";
+       else
+               mime = "text/html";
+
+       response = MHD_create_response_from_fd (buff.st_size, fd);
+       MHD_add_response_header (response, "Content-Type", mime);
+
+       return response;
+}
+
+ssize_t Server::handle_mjpeg(void *cls, uint64_t pos, char *buf, size_t max){
+    Server *s = static_cast<Server*>(cls);
+    std::cout << "pos: " << pos << " max: " << max << std::endl;
+    s->_live_stream->seekg(pos);
+    std::streamsize available = s->_live_stream->rdbuf()->in_avail();
+
+    if(available < max) {
+        const char *data;
+        int size = s->cc->preview(&data);
+        if(size < GP_OK)
+            return MHD_CONTENT_READER_END_OF_STREAM;
+        
+        *s->_live_stream << "--CCA_LV_FRAME\r\nContent-Type: image/jpeg\r\n\r\n";
+        *s->_live_stream << std::string(data, size);
+        *s->_live_stream << "\r\n";
+        delete data;
+    }
+    
+
+    s->_live_stream->read(buf, max);
+    return max;
+}
+
+void Server::free_mjpeg(void *cls) {
+    Server *s = static_cast<Server *>(cls);
+    s->_live_stream->str("");
+    s->_live_stream->clear();
+}
+
+MHD_Response* Server::handle_api(void *cls,
+                 const char *url,
+				map<string, string> url_args,
+				string respdata,
+                 void **ptr){
+
+	Server s = *(Server *)cls;
+	map<string, string>::iterator  it;
+	const char *typexml = "xml";
+	const char *typejson = "json";
+	const char *type = typejson;
+	char *me;
+	MHD_Response *response;
+
+	s.cmd->execute(url, url_args, respdata);
+
+	*ptr = 0;
+	me = (char *)malloc(respdata.size() + 1);
+	if(me == 0)
+			return MHD_NO;
+
+	strncpy(me, respdata.c_str(), respdata.size() + 1);
+
+	response = MHD_create_response_from_buffer(strlen(me), (void *)me, MHD_RESPMEM_MUST_COPY);
+
+	if(response == 0){
+			free(me);
+			return MHD_NO;
+	}
+
+	it = url_args.find("type");
+	if (it != url_args.end() && strcasecmp(it->second.c_str(), "xml")) {
+			type = typexml;
+	}
+
+	if(type == typejson){
+			MHD_add_response_header(response, "Content-Type", "application/json");
+			//MHD_add_response_header(response, "Content-Disposition", "attachment;filename=\"cca.json\"");
+	} else {
+			MHD_add_response_header(response, "Content-Type", "application/xml");
+			//MHD_add_response_header(response, "Content-Disposition", "attachment;filename=\"cca.xml\"");
+	}
+
+	MHD_add_response_header (response, "Access-Control-Allow-Origin", "*");
+	return response;
+ }
+
+void Server::http(){
     struct MHD_Daemon *d;
     d = MHD_start_daemon(MHD_USE_DEBUG|MHD_USE_SELECT_INTERNALLY|MHD_USE_POLL, this->_port,
                          0, 0, Server::url_handler, (void*)this ,MHD_OPTION_END);
-    if(d==0){
-        return 0;
+    if(d == NULL){
+        return;
     }
 
     while (this->_shoulNotExit) {
@@ -265,5 +335,6 @@ void *Server::http(){
 
 
     MHD_stop_daemon(d);
-    return 0;
+    return;
 }
+

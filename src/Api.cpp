@@ -229,40 +229,6 @@ bool Api::timelapse(int interval, time_t start, time_t end, CCA_API_OUTPUT_TYPE 
     return false;
 }
 
-bool Api::liveview(CCA_API_LIVEVIEW_MODES mode, CCA_API_OUTPUT_TYPE type, string &output){
-    if(this->_check(type, output)){
-        ptree tree;
-        if(mode == CCA_API_LIVEVIEW_START){
-            int ret = this->_cc->liveview_start();
-            if(ret){
-                string port, address;
-                Settings *sett = Settings::getInstance();
-                sett->get_value("preview.remote_port", port);
-                sett->get_value("preview.host", address);
-
-                tree.put("port", port);
-                tree.put("ip_address", address);
-
-                Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
-
-            } else {
-                Api::buildResponse(tree, type, CCA_API_RESPONSE_INVALID, output);
-            }
-        } else {
-            int ret = this->_cc->liveview_stop();
-            if(ret){
-                tree.put("stop", "success");
-                Api::buildResponse(tree, type, CCA_API_RESPONSE_SUCCESS, output);
-
-            } else {
-                Api::buildResponse(tree, type, CCA_API_RESPONSE_INVALID, output);
-            }
-        }
-        return true;
-    }
-    return false;
-}
-
 bool Api::bulb(CCA_API_OUTPUT_TYPE type, string &output){
     if(this->_check(type, output)){
         return this->_cc->bulb("bulb.jpg", output);

@@ -17,7 +17,6 @@
 #include <boost/property_tree/ptree.hpp>
 
 
-
 using std::string;
 using boost::property_tree::ptree;
 
@@ -40,8 +39,6 @@ namespace CameraControllerApi {
         void is_bussy(bool busy);
         int capture(const char *filename, string &data);
         int preview(const char **file_data);
-        int liveview_start();
-        int liveview_stop();
         int bulb(const char *filename, string &data);
         int get_settings(ptree &sett);
         int get_settings_value(const char *key, string &val);
@@ -49,9 +46,6 @@ namespace CameraControllerApi {
         int set_settings_value(const char *key, const char *val);
         int get_files(ptree &tree);
         int get_file(const char *filename, const char *filepath, string &base64out);
-        
-        static void* start_liveview_server(void *context);
-        
                 
     private:
         static CameraController *_instance;        

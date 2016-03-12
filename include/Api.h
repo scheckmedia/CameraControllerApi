@@ -29,11 +29,6 @@ namespace CameraControllerApi {
     using boost::property_tree::basic_ptree;
 
     typedef enum {
-        CCA_API_LIVEVIEW_START,
-        CCA_API_LIVEVIEW_STOP
-    } CCA_API_LIVEVIEW_MODES;
-
-    typedef enum {
         CCA_API_RESPONSE_SUCCESS = 1,
         CCA_API_RESPONSE_INVALID = -1,
         CCA_API_RESPONSE_CAMERA_NOT_FOUND = -2,
@@ -94,7 +89,6 @@ namespace CameraControllerApi {
         bool bulb(CCA_API_OUTPUT_TYPE type, string &output);
         bool timelapse(int interval, time_t start, time_t end, CCA_API_OUTPUT_TYPE type, string &output);
         bool burst(int number_of_images, CCA_API_OUTPUT_TYPE type, string &output);
-        bool liveview(CCA_API_LIVEVIEW_MODES mode, CCA_API_OUTPUT_TYPE type, string &output);
     };
 }
 
