@@ -1,6 +1,6 @@
 CameraControllerApi
 ===================
-The CameraControlerApi is an attempt to control a DSLR via REST functionality. At the moment is it possible 
+The CameraControlerApi is an attempt to control a DSLR via REST functionality. At the moment is it possible
 to change the camera settings (ISO, aperture, time), take pictures and stream the live view of the camera (only tested with a Nikon D90).
 
 ###Web-Interface###
@@ -62,21 +62,6 @@ You will get all valid data for a command from the "list" action.
 `http://device_ip:port/capture?action=autofocus`
 
 
-
-**start liveview**
-
-`http://device_ip:port/capture?action=live&value=start`
-
-<small>Returns a file with connection data. The command will open a socket which allows you to connect to get the stream data.</small>
-
-
-
-**end liveview**
-
-`http://device_ip:port/capture?action=live&value=end`
-
-
-
 ###File system###
 
 **list of the available images on camera**
@@ -95,12 +80,30 @@ You will get all valid data for a command from the "list" action.
 Each method will response with a JSON file. If you want a XML response you have to put the command "&amp;type=xml" on the end of the upper commands
 
 
+####Live View
+live view will be generated as mjpeg-stream. you can easy implement this stream in html inside an image tag e.g:
+```
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Live View</title>
+</head>
+
+<body>
+<img src="http://localhost:8888/liveview" />
+</body>
+
+</html>
+```
+
+
 
 ##Dependencies##
 ```apt-get install libboost-dev libboost-system-dev libmicrohttpd-dev libghoto2-dev libexif-dev```
 
 + libgphoto
-+ libboost 
++ libboost
 + libboost-system
 + libmicrohttpd
 + libexif
