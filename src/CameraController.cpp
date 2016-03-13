@@ -18,6 +18,8 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/asio.hpp>
+#include <boost/algorithm/string.hpp>
+
 
 
 using namespace CameraControllerApi;
@@ -153,7 +155,6 @@ int CameraController::capture(const char *filename, string &data){
 
     if(this->_save_images == false){
         ret = gp_camera_file_delete(this->_camera, path.folder, path. name, this->_ctx);
-        gp_file_free(file);
 
         if (ret != GP_OK){
             this->_is_busy = false;
@@ -166,7 +167,6 @@ int CameraController::capture(const char *filename, string &data){
     CameraEventType type;
     void *eventdata;
 
-    printf("Wait for events from camera\n");
     while(1) {
 
         gp_camera_wait_for_event(this->_camera, waittime, &type, &eventdata, this->_ctx);
@@ -181,6 +181,8 @@ int CameraController::capture(const char *filename, string &data){
             printf("Unexpected event received from camera: %d\n", (int)type);
         }
     }
+    
+    gp_file_free(file);
 
     this->_is_busy = false;
     return true;
@@ -217,8 +219,6 @@ int CameraController::preview(const char **file_data){
 
     *file_data = new char[file_size];
     memcpy((void *)*file_data, data, file_size);
-
-    // FIXME: not working...
     gp_file_unref(file);
     return static_cast<int>(file_size);
 }
@@ -287,11 +287,7 @@ int CameraController::get_file(const char *filename, const char *filepath, strin
 
 int CameraController::get_files(ptree &tree){
     this->_is_busy = true;
-    //long t0 = time(NULL);
     int ret = this->_get_files(tree, "/");
-    //long t1= time(NULL);
-
-    //printf ("\n\ntime = %ld secs\n", t1 - t0);
     this->_is_busy = false;
     return ret;
 }
@@ -323,7 +319,7 @@ int CameraController::_get_files(ptree &tree, const char *path){
             this->_get_files(tree, abspath.c_str());
         }
     } else {
-        string show_thumbnials = Settings::get_value("general.thumbnail");
+        bool show_thumb = Settings::get_value("general.thumbnail").compare("true") == 0;
 
         ret = gp_list_new(&files);
         if(ret < GP_OK)
@@ -338,7 +334,6 @@ int CameraController::_get_files(ptree &tree, const char *path){
         ptree current_folder, filelist;
         current_folder.put("absolute_path", path);
 
-        bool show_thumb = (show_thumbnials.compare("true") == 0);
 
         unsigned long int file_size = 0;
         const char *file_data = NULL;
@@ -349,8 +344,10 @@ int CameraController::_get_files(ptree &tree, const char *path){
             ptree valuechild;
             valuechild.put("name", name);
 
-            const char *ext = strrchr(name, '.');
-            if(show_thumb && (strcmp(".jpg", ext) == 0 || strcmp(".jpeg", ext) == 0 || strcmp(".JPG", ext) == 0  )){
+            std::string ext = std::string(name);
+            boost::algorithm::to_lower(ext);
+            ext = ext.substr(ext.find_last_of(".") + 1);
+            if(show_thumb && ext.compare("avi") != 0){
                 CameraFilePath cPath;
                 strcpy(cPath.folder, path);
                 strcpy(cPath.name, name);
@@ -368,18 +365,17 @@ int CameraController::_get_files(ptree &tree, const char *path){
                 if (ret != GP_OK)
                     continue;
 
-
-
                 ret = gp_file_get_data_and_size (file, &file_data, &file_size);
                 if (ret != GP_OK)
                     continue;
 
                 string thumb = "";
-                //Helper::resize_image_to_base64(thumb_widht, thumb_height, file_data, file_size, thumb);
-                Helper::get_thumbnail_from_exif(file_data, file_size, thumb);
+                if (Helper::get_thumbnail_from_exif(file_data, file_size, thumb) == false) {
+                    //if we have no thumbnail data, we sending the whole image
+                    std::string img(file_data, file_size);
+                    Helper::to_base64(&img, thumb);
+                }
                 valuechild.put("thumbnail", thumb);
-
-                printf("end read file %s", name);
 
                 gp_file_free(file);
                 file_size = 0;
@@ -609,6 +605,9 @@ void CameraController::_get_item_value(CameraWidget *w, ptree &tree){
     gp_widget_get_name(w, &item_name);
     gp_widget_get_value(w, &item_value);
     gp_widget_get_type(w, &type);
+    
+    if(item_value == NULL)
+        return;
 
     int number_of_choices = gp_widget_count_choices(w);
     if(number_of_choices > 0){
@@ -661,24 +660,21 @@ int CameraController::_file_to_base64(CameraFile *file, string &output){
 	ret = gp_file_get_data_and_size (file, &file_data, &file_size);
     if (ret != GP_OK)
         return ret;
-    //char *dest = new char[file_size];
-    char *dest = (char*)malloc(file_size * sizeof(char*));
-    base64_encode(dest, (char*)file_data, (int)file_size);
-    output.append(dest);
-    free(dest);
 
+    const char *m;
+    ret = gp_file_get_mime_type(file, &m);
+    
+    std::string mime(m);
+    cout << "mime: " << mime << std::endl;
+    if(mime.compare("image/jpeg") == 0) {
+        std::string img(file_data, file_size);
+        Helper::to_base64(&img, output);
+    } else {
+        Helper::get_image_from_exif(file_data, file_size, output);
+    }
     return true;
 }
 
-int CameraController::_file_to_base64(const char* data, unsigned int data_size, string &output){
-    //char *dest = new char[file_size];
-    char *dest = (char*)malloc(data_size * sizeof(char*));
-    base64_encode(dest, (char*)data, (int)data_size);
-    output.append(dest);
-    free(dest);
-
-    return true;
-}
 
 GPContextErrorFunc CameraController::_error_callback(GPContext *context, const char *text, void *data){
 
