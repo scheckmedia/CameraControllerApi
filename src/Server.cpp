@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/fcntl.h>
+#include <boost/algorithm/string/replace.hpp>
 
 using std::map;
 using std::regex;
@@ -146,6 +147,7 @@ int Server::url_handler (void *cls,
     string respdata;
 
     static int aptr;
+    std::string urlString(url);
 
 
 
@@ -181,15 +183,9 @@ int Server::url_handler (void *cls,
         return Server::send_bad_response(connection);
     }
 
-
-    //TODO: implement releative path for webif url
-    /*std::regex rx("(/webif/$)|(/webif$)");
-    bool match = std::regex_match(url, rx);*/
-
-
-    if(strcmp(url, "/webif/") >= 0 && s._webif){
+    if( urlString.find("webif") != std::string::npos && s._webif){
     	response = handle_webif(cls, connection, url);
-    } else if(strcmp(url, "/liveview") >= 0) {
+    } else if(urlString.find("liveview") != std::string::npos) {
     	response = MHD_create_response_from_callback (MHD_SIZE_UNKNOWN,
                                                       512 * 1024,
                                                       Server::handle_mjpeg, cls, Server::free_mjpeg);
@@ -207,48 +203,48 @@ int Server::url_handler (void *cls,
 MHD_Response* Server::handle_webif(void *cls,
 						struct MHD_Connection *connection,
 						const char *url) {
-       struct stat buff;
-       int fd;
-       MHD_Response *response;
-       const char *file = strrchr(url, '/');
-       if(strcmp(file, "/") == 0)url = "webif/index.html";
+    std::string path(url);
+    struct stat buff;
+    int fd;
+    MHD_Response *response;
+    
+    boost::replace_all(path, "webif", "");
+    boost::replace_all(path, "webif/", "");
+    if(path.compare("/") == 0) path = "/index.html";
+    path.insert(0, "./webif");
 
-       string filepath = "./";
-       filepath.append(url);
+    if ( (-1 == (fd = open (path.c_str(), O_RDONLY))) || (0 != fstat (fd, &buff))){
+           if (fd != -1) close (fd);
+           Server::send_bad_response(connection);
+           return NULL;
+    }
 
+    std::string ext = path.substr(path.find_last_of(".") + 1);
 
-       if ( (-1 == (fd = open (filepath.c_str(), O_RDONLY))) || (0 != fstat (fd, &buff))){
-               if (fd != -1) close (fd);
-               Server::send_bad_response(connection);
-               return NULL;
-       }
+    std::string mime;
+    if(ext.compare("js") == 0)
+           mime = "text/javascript";
+    else if(ext.compare("css") == 0)
+           mime = "text/css";
+    else if(ext.compare("jpg") == 0 || ext.compare(".jpeg") == 0 || ext.compare(".jpe") == 0)
+           mime = "image/jpeg";
+    else if(ext.compare("gif") == 0)
+           mime = "image/gif";
+    else if(ext.compare("png") == 0)
+           mime = "image/png";
+    else
+           mime = "text/html";
 
-       const char *ext = strrchr(url, '.');
+    response = MHD_create_response_from_fd (buff.st_size, fd);
+    MHD_add_response_header (response, "Content-Type", mime.c_str());
 
-       const char *mime;
-       if(strcmp(ext, ".js") == 0)
-               mime = "text/javascript";
-       else if(strcmp(ext, ".css") == 0)
-               mime = "text/css";
-       else if(strcmp(ext, ".jpg") == 0 || strcmp(ext, ".jpeg") == 0 || strcmp(ext, ".jpe") == 0)
-               mime = "image/jpeg";
-       else if(strcmp(ext, ".gif") == 0)
-               mime = "image/gif";
-       else if(strcmp(ext, ".png") == 0)
-               mime = "image/png";
-       else
-               mime = "text/html";
-
-       response = MHD_create_response_from_fd (buff.st_size, fd);
-       MHD_add_response_header (response, "Content-Type", mime);
-
-       return response;
+    return response;
 }
 
 ssize_t Server::handle_mjpeg(void *cls, uint64_t pos, char *buf, size_t max){
     Server *s = static_cast<Server*>(cls);
-    std::cout << "pos: " << pos << " max: " << max << std::endl;
     s->_live_stream->seekg(pos);
+    
     std::streamsize available = s->_live_stream->rdbuf()->in_avail();
 
     if(available < max) {
@@ -323,7 +319,7 @@ MHD_Response* Server::handle_api(void *cls,
 
 void Server::http(){
     struct MHD_Daemon *d;
-    d = MHD_start_daemon(MHD_USE_DEBUG|MHD_USE_SELECT_INTERNALLY|MHD_USE_POLL, this->_port,
+    d = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, this->_port,
                          0, 0, Server::url_handler, (void*)this ,MHD_OPTION_END);
     if(d == NULL){
         return;
