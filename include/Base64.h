@@ -26,7 +26,7 @@ extern const char b64_alphabet[];
  * 			2. input must not be null
  * 			3. inputLen must be greater than or equal to 0
  */
-int base64_encode(char *output, char *input, int inputLen);
+int base64_encode(char *output, const char *input, int inputLen);
 
 /* base64_decode:
  * 		Description:
