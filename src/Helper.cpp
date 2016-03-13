@@ -9,109 +9,69 @@
 #include "Helper.h"
 #include "Base64.h"
 #include <stdlib.h>
-//#include <FreeImage.h>
-#include <libexif/exif-loader.h>
+#include <exiv2/exiv2.hpp>
+#include <assert.h>
 
 using namespace CameraControllerApi;
 
+bool Helper::get_image_from_exif(const char *image_data, unsigned long data_size, string &base) {
+    return Helper::get_thumbnail_from_exif(image_data, data_size, base, FULL);
+}
 
-void Helper::get_thumbnail_from_exif(const char *image_data, unsigned long data_size, string &base){
-    ExifLoader *l = exif_loader_new();
-    if(l){
-        ExifData *exif_data;
-        exif_loader_write(l, (unsigned char*)image_data, (unsigned int)data_size);
-        exif_data = exif_loader_get_data(l);
-        exif_loader_unref(l);
-        l = NULL;
+bool Helper::get_thumbnail_from_exif(const char *image_data, unsigned long data_size, string &base, ImageType type) {
+    try {
+        Exiv2::Image::AutoPtr image = Exiv2::ImageFactory::open((const Exiv2::byte*)image_data, data_size);
+        assert(image.get() != 0);
+        image->readMetadata();
         
-        if(exif_data){
-            if(exif_data->data && exif_data->size){
-                char *buffer = new char[exif_data->size * sizeof(unsigned char*)];
-                if(buffer == NULL) return;
-                
-                base64_encode(buffer, (char *)exif_data->data, (int)exif_data->size);
-                base.append(buffer);
-                delete[] buffer;
+        Exiv2::ExifData &exifData = image->exifData();
+        if (exifData.empty()) {
+            std::cerr << "exif data are empty" << std::endl;
+            return false;
+        }
+        
+        Exiv2::PreviewManager loader(*image);
+        Exiv2::PreviewPropertiesList list = loader.getPreviewProperties();
+        
+        Exiv2::PreviewProperties thumb;
+        unsigned long start = type == THUMBNAIL ? 0 : list.size() - 1;
+        unsigned long end = type == THUMBNAIL ? list.size() - 1 : 0;
+        
+        for(unsigned long i = start; i != end; type == THUMBNAIL ? ++i : --i)
+        {
+            thumb = list.at(i);
+            if(thumb.extension_.compare(".jpg") == 0) {
+                std::cerr << "Preview Item: " << thumb.width_ << "x" << thumb.height_ << " ext:" << thumb.extension_ << std::endl;
+                break;
             }
-            exif_data_free(exif_data);
         }
-    }    
-}
-
-/*void Helper::resize_image_to_base64(int w, int h, const char *image_data, unsigned long data_size, string &base){
-    Helper::_resize(w, h, image_data, data_size, base);
-}
-
-void Helper::resize_image_to_base64(int square, const char *image_data, unsigned long data_size, string &base){
-    Helper::_resize(square, square, image_data, data_size, base);
-}
-
-void Helper::_resize(int w, int h, const char *image_data, unsigned long data_size, string &base){
-    FreeImage_Initialise();
-    FIMEMORY *src = FreeImage_OpenMemory((BYTE *)image_data, (DWORD)data_size);
-    FREE_IMAGE_FORMAT fif = FreeImage_GetFileTypeFromMemory(src);
-    FIBITMAP *image = FreeImage_LoadFromMemory(fif, src);
-    if(image){
-        FIMEMORY *dest = FreeImage_OpenMemory();
-        FIBITMAP *thumbnail = FreeImage_Rescale(image, w, h, FILTER_BOX);
-        if(thumbnail){
-            FreeImage_SaveToMemory(fif, thumbnail, dest, JPEG_DEFAULT);
-            
-            BYTE *mem_buffer = NULL;
-            DWORD size_in_bytes = 0;
-            
-            FreeImage_AcquireMemory(dest, &mem_buffer, &size_in_bytes);
-            
-            char *buffer = new char[size_in_bytes * sizeof(BYTE*)];
-            if(buffer == NULL) return;
-            
-            base64_encode(buffer, (char *)mem_buffer, (int)size_in_bytes);
-            base.append(buffer);
-            delete[] buffer;
-            
+        
+        Exiv2::PreviewImage preview = loader.getPreviewImage(thumb);
+        if(preview.size() <= 0){
+            std::cerr << "exif thumbnail is empty" << std::endl;
+            return false;
         }
-        FreeImage_Unload(thumbnail);
-        FreeImage_CloseMemory(dest);
+        
+        Exiv2::DataBuf buf = preview.copy();
+        std::string *data = new std::string(reinterpret_cast<char*>(buf.pData_), buf.size_);
+        Helper::to_base64(data, base);
+        
+        delete data;
+        buf.release();
+        
+        return true;
+    } catch (Exiv2::Error& e) {
+        std::cerr << "error in image: " << e.what() << " " << std::endl;
+        return false;
     }
-    FreeImage_Unload(image);
-    FreeImage_CloseMemory(src);
-    FreeImage_DeInitialise();
 }
- 
-// raw libjpeg implementation... not working
-void Helper::_resize(int w, int h, const char *image_data, unsigned long data_size, string &base){
-    struct jpeg_decompress_struct in;
-    struct jpeg_error_mgr in_err;
+
+void Helper::to_base64(std::string *data, string &base) {
+    char *buffer = new char[data->size() * sizeof(char*)];
+    if(buffer == NULL) return;
     
-    in.err = jpeg_std_error(&in_err);
-    jpeg_create_decompress(&in);
+    base64_encode(buffer, data->c_str(), static_cast<int>(data->size()));
+    base.append(buffer);
     
-    jpeg_mem_src(&in, (unsigned char*)image_data, data_size);
-    
-    if(jpeg_read_header(&in, TRUE) == false)
-        return;
-    
-    jpeg_start_decompress(&in);
-    
-    JSAMPROW row_pointer[1];
-    JSAMPARRAY buffer;
-    int width, height, pixel_size, row_stride, fx, fy;
-    
-    pixel_size = in.num_components;
-    width = in.output_width;
-    height = in.output_height;
-    
-    fx = width / w;
-    fy = height / h;
-    
-    row_stride = w * pixel_size;
-    buffer = (*in.mem->alloc_sarray)((j_common_ptr) &in,JPOOL_IMAGE, row_stride, 1);
-    
-    while (in.output_scanline < height) {
-        jpeg_read_scanlines(&in, buffer, 1);
-        for(int x = 0; x < w; x++){
-            
-        }
-    }
-    
-}*/
+    delete[] buffer;
+}
