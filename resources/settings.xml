@@ -16,8 +16,4 @@
         <!-- specifies the server listen port -->
         <port>8888</port>
     </server>
-    <preview>
-        <host>127.0.0.1</host>
-        <remote_port>8889</remote_port>
-    </preview>
 </CCA_SETTINGS>
