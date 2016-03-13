@@ -100,8 +100,10 @@ select {
 	cursor: pointer;
 	margin: 20px;
 	opacity: 0.3;
-
-	min-height: 80px;	
+    width: 160px;
+    height: 120px;
+	min-height: 80px;
+    
 }
 
 
@@ -128,8 +130,8 @@ select {
 }
 
 .image-container {
-	float: left;
-	width: 78%;
+	width: 100%;
+    text-align:center;
 }
 .sidebar {
 	float: right;

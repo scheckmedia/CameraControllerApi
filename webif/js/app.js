@@ -193,7 +193,6 @@ window.StatusBox = Backbone.View.extend({
 
 window.EditBox = Backbone.View.extend({
 	el : '#dialog',
-	caman : null,
 
 	initialize : function(){
 		
@@ -212,15 +211,7 @@ window.EditBox = Backbone.View.extend({
 
 		$('#editbox').modal('show');		
 		this.$el.find('.image-container').html('<img id="camanimage" src="data:image/jpg;base64,'+base64+'" data-camanwidth="800" data-camanheight="600"/>');		
-		$('.slider').slider()		
-
-		this.caman = Caman("#camanimage", function(){
-			this.resize({
-				width  : 800,
-				height : 600
-			});
-			this.render();
-		});
+		$('.slider').slider()
 	},	
 
 	save : function(){
@@ -229,27 +220,7 @@ window.EditBox = Backbone.View.extend({
 
 	close : function(){
 		$('#editbox').modal('hide');
-		this.caman = null;
 	},
-
-	slide : function(e){
-		if(this.caman == null) return;
-		console.log(e.value);
-		var mode = $(e.target).attr('data-mode');		
-		if(mode == "brightness")
-			this.caman.brightness(e.value).render();
-		else if(mode == "saturation")
-			this.caman.saturation(e.value).render();
-		else if(mode == "exposure")
-			this.caman.exposure(e.value).render();
-		else if(mode == "contrast")
-			this.caman.contrast(e.value).render();
-		else if(mode == "vibrance")
-			this.caman.vibrance(e.value).render();
-		else if(mode == "hue")
-			this.caman.hue(e.value).render();
-	},
-
 	slideStop : function(){				
 	}
 });

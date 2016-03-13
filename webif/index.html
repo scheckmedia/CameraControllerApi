@@ -12,9 +12,9 @@
             padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
         }
     </style>
-    <link href="css/bootstrap.min.css" rel="stylesheet">    
-    <link href="css/slider.css" rel="stylesheet">
-    <link href="css/styles.css" rel="stylesheet">
+    <link href="webif/css/bootstrap.min.css" rel="stylesheet">
+    <link href="webif/css/slider.css" rel="stylesheet">
+    <link href="webif/css/styles.css" rel="stylesheet">
 </head>
 
 <body>
@@ -42,7 +42,7 @@
 </script>
 
 <script type="text/template" id="control_template">
-    <img class="image" id="result_image" src="img/pic.jpg" />
+    <img class="image" id="result_image" src="webif/img/pic.jpg" />
     <button id="show-control" class="btn btn-show-controlls ">
         <span class="glyphicon glyphicon-chevron-down"></span>
     </button>
@@ -106,47 +106,7 @@
     <div class="modal-dialog">
       <div class="modal-content">       
         <div class="modal-body">
-            <div class="image-container"></div>
-            <div class="sidebar">                
-                <ul class="list-group">
-                    <li class="list-group-item">
-                        brightness 
-                        <span class="pull-right">
-                            <input type="text" class="slider" id="slider-brightness" value="0" data-mode="brightness" data-slider-min="-100" data-slider-max="100" data-slider-step="1" />
-                        </span>
-                    </li>                    
-                    <li class="list-group-item">
-                        saturation 
-                        <span class="pull-right">
-                            <input type="text" class="slider" id="slider-saturation" value="0" data-mode="saturation" data-slider-min="-100" data-slider-max="100" data-slider-step="1" />
-                        </span>
-                    </li>
-                    <li class="list-group-item">
-                        exposure 
-                        <span class="pull-right">
-                            <input type="text" class="slider" id="slider-exposure" value="" data-mode="exposure" data-slider-min="-100" data-slider-max="100" data-slider-step="1" />
-                        </span>
-                    </li>
-                    <li class="list-group-item">
-                        contrast 
-                        <span class="pull-right">
-                            <input type="text" class="slider" id="slider-contrast" value="" data-mode="contrast" data-slider-min="-100" data-slider-max="100" data-slider-step="1" />
-                        </span>
-                    </li>
-                    <li class="list-group-item">
-                        vibrance 
-                        <span class="pull-right">
-                            <input type="text" class="slider" id="slider-vibrance" value="" data-mode="vibrance" data-slider-min="-100" data-slider-max="100" data-slider-step="1" />
-                        </span>
-                    </li>
-                    <li class="list-group-item">
-                        hue 
-                        <span class="pull-right">
-                            <input type="text" class="slider" id="slider-hue" value="" data-mode="hue" data-slider-min="0" data-slider-max="100" data-slider-step="1" />
-                        </span>
-                    </li>                   
-                  </ul>
-            </div>
+            <div class="image-container"></div>            
             <div class="clearfix"></div>            
         </div>   
         <div class="modal-footer">
@@ -184,14 +144,13 @@
 </script>
 
 
-<script src="lib/jquery.min.js"></script>
-<script src="lib/jquery.easing.1.3.js"></script>
-<script src="lib/bootstrap.min.js"></script>
-<script src="lib/bootstrap-slider.js"></script>
-<script src="lib/underscore-min.js"></script>
-<script src="lib/backbone-min.js"></script>
-<script src="lib/caman.full.min.js"></script>
-<script src="js/app.js"></script>
+<script src="webif/lib/jquery.min.js"></script>
+<script src="webif/lib/jquery.easing.1.3.js"></script>
+<script src="webif/lib/bootstrap.min.js"></script>
+<script src="webif/lib/bootstrap-slider.js"></script>
+<script src="webif/lib/underscore-min.js"></script>
+<script src="webif/lib/backbone-min.js"></script>
+<script src="webif/js/app.js"></script>
 
 </body>
 </html>
