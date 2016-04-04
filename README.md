@@ -100,7 +100,7 @@ live view will be generated as mjpeg-stream. you can easy implement this stream 
 
 
 ##Dependencies##
-```apt-get install libboost-dev libboost-system-dev libmicrohttpd-dev libghoto2-dev libexiv2-dev```
+```apt-get install libboost-dev libboost-system-dev libmicrohttpd-dev libgphoto2-dev libexiv2-dev```
 
 + libgphoto
 + libboost
