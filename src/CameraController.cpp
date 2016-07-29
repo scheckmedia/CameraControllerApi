@@ -216,10 +216,11 @@ int CameraController::preview(const char **file_data){
         this->_is_busy = false;
         return ret;
     }
-
+    this->_is_busy = false;
     *file_data = new char[file_size];
     memcpy((void *)*file_data, data, file_size);
     gp_file_unref(file);
+    
     return static_cast<int>(file_size);
 }
 
