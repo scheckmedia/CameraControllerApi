@@ -192,6 +192,7 @@ int Server::url_handler (void *cls,
         MHD_add_response_header(response, "Content-Type", "multipart/x-mixed-replace;boundary=CCA_LV_FRAME");
     } else if(urlString.find("preview") != std::string::npos) {
         const char *data;
+        
         int size = s.cc->preview(&data);
         response = MHD_create_response_from_buffer(size, (void *)data, MHD_RESPMEM_MUST_COPY);
     	  MHD_add_response_header(response, "Content-Type", "image/jpeg");  
@@ -255,7 +256,6 @@ ssize_t Server::handle_mjpeg(void *cls, uint64_t pos, char *buf, size_t max){
 
     if(available < max) {
         const char *data;
-        s->cc->set_settings_value("autofocusdrive", "1");
         int size = s->cc->preview(&data);
         if(size < GP_OK)
             return MHD_CONTENT_READER_END_OF_STREAM;
