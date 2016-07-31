@@ -185,11 +185,18 @@ int Server::url_handler (void *cls,
 
     if( urlString.find("webif") != std::string::npos && s._webif){
     	response = handle_webif(cls, connection, url);
-    } else if(urlString.find("liveview") != std::string::npos) {
-    	response = MHD_create_response_from_callback (MHD_SIZE_UNKNOWN,
+    } else if(urlString.find("liveview") != std::string::npos) { 
+      response = MHD_create_response_from_callback (MHD_SIZE_UNKNOWN,
                                                       512 * 1024,
                                                       Server::handle_mjpeg, cls, Server::free_mjpeg);
         MHD_add_response_header(response, "Content-Type", "multipart/x-mixed-replace;boundary=CCA_LV_FRAME");
+    } else if(urlString.find("preview") != std::string::npos) {
+        const char *data;
+        
+        int size = s.cc->preview(&data);
+        response = MHD_create_response_from_buffer(size, (void *)data, MHD_RESPMEM_MUST_COPY);
+    	  MHD_add_response_header(response, "Content-Type", "image/jpeg");  
+        
     } else {
     	response = handle_api(cls, url, url_args, respdata, ptr);
     }
