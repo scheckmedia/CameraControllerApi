@@ -9,7 +9,7 @@ RESOURCES= resources/error_messages.xml resources/settings.xml webif
 all: dirs $(CPP_FILES) bin/$(EXECUTABLE)
 
 bin/$(EXECUTABLE): $(OBJ_FILES)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDFLAGS)
 
 obj/%.o: src/%.cpp
 	$(CC) $(CXXFLAGS) -c -o $@ $<
