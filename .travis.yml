@@ -1,0 +1,18 @@
+language: cpp
+dist: trusty
+sudo: false
+
+compiler:
+  - gcc
+
+addons:
+  apt:
+    packages:
+      - libboost-dev
+      - libboost-system-dev
+      - libmicrohttpd-dev
+      - libgphoto2-dev
+      - libexiv2-dev
+
+script:
+  - make VERBOSE=1
