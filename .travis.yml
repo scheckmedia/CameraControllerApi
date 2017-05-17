@@ -13,16 +13,14 @@ addons:
     - libexiv2-dev
 script:
 - make VERBOSE=1
+
+before_deploy: "cd bin && tar -zcvf ../CameraControllerApi-$TRAVIS_TAG.tar.gz . && cd .."
 deploy:
   provider: releases
   api_key:
     secure: faqXDjv3SX3BYg36+a4xvFZ5L26sIz1u7edjtj1KgqIqUPrBXfj1FAkEjpEAlvLlS0OL2OaJghXua1NuZlzL7+dl2eRtD32oZWyejUS+jy2yFwRJ3oSXGL5T20MM5xFUpDXRm6VuoIFVfuzieJqzz7gVPMr/uT1JnCqbB3GEtAc=
-  file_glob: true
   file:
-    - bin/CameraControllerApi
-    - bin/error_messages.xml
-    - bin/settings.xml
-    - bin/webif/*
+    - CameraControllerApi-$TRAVIS_TAG.tar.gz
   skip_cleanup: true
   on:
     repo: scheckmedia/CameraControllerApi
