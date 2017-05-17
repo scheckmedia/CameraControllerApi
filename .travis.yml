@@ -1,18 +1,28 @@
 language: cpp
 dist: trusty
 sudo: false
-
 compiler:
-  - gcc
-
+- gcc
 addons:
   apt:
     packages:
-      - libboost-dev
-      - libboost-system-dev
-      - libmicrohttpd-dev
-      - libgphoto2-dev
-      - libexiv2-dev
-
+    - libboost-dev
+    - libboost-system-dev
+    - libmicrohttpd-dev
+    - libgphoto2-dev
+    - libexiv2-dev
 script:
-  - make VERBOSE=1
+- make VERBOSE=1
+deploy:
+  provider: releases
+  api_key:
+    secure: faqXDjv3SX3BYg36+a4xvFZ5L26sIz1u7edjtj1KgqIqUPrBXfj1FAkEjpEAlvLlS0OL2OaJghXua1NuZlzL7+dl2eRtD32oZWyejUS+jy2yFwRJ3oSXGL5T20MM5xFUpDXRm6VuoIFVfuzieJqzz7gVPMr/uT1JnCqbB3GEtAc=
+  file:
+    - bin/CameraControllerApi
+    - bin/error_messages.xml
+    - bin/settings.xml
+    - bin/webif/
+  skip_cleanup: true
+  on:
+    repo: scheckmedia/CameraControllerApi
+    tags: true
